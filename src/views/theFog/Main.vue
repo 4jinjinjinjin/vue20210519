@@ -120,6 +120,7 @@ export default {
 .clearfix:after {
   display: table;
   content: "";
+
 }
 
 .clearfix:after {
