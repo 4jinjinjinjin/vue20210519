@@ -7,6 +7,7 @@ import Member from "@/views/theFog/Member";
 import Store from "@/views/theFog/Store";
 import Index from "@/views/theFog/Index";
 import Goods from "@/views/theFog/Goods";
+import Pay from "@/views/theFog/room/Pay";
 
 Vue.use(VueRouter)
 

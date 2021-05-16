@@ -1,7 +1,7 @@
 <template>
   <div id="Main">
     <el-row>
-      <el-col :span="4" v-for="(o, index) in tableData" :key="o.id" :offset="index > 0 ? 0 : 0">
+      <el-col :span="4" v-for="(o, index) in roomDatas" :key="o.id" :offset="index > 0 ? 0 : 0">
         <el-row>
           <el-col :span="24-o.spanlen%8">
             <el-card :body-style="{ padding: '4px' }" style="margin-bottom: 5px" shadow="hover"
@@ -14,7 +14,7 @@
           <el-col style="margin-top: 8px;" :span="o.spanlen%8" v-if="o.show">
             <el-row>
               <el-tooltip class="item" effect="dark" content="详情" placement="right">
-                <el-button icon="el-icon-info" size="small " @click="lookRoomDetail(o.id)" plain circle></el-button>
+                <el-button icon="el-icon-info" size="small " @click="gotoRoomDetail(o.id,'1')" plain circle></el-button>
               </el-tooltip>
             </el-row>
             <el-row>
@@ -36,13 +36,13 @@
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="结账" placement="right">
-                <el-button type="primary" icon="el-icon-s-finance" size="small " v-if="o.isUse=='1'?true:false" plain
+                <el-button type="primary" @click="goPay(o.id)" icon="el-icon-s-finance" size="small " v-if="o.isUse=='1'?true:false" plain
                            circle></el-button>
               </el-tooltip>
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="设置" placement="right">
-                <el-button type="info" icon="el-icon-s-tools" size="small " v-if="o.isUse=='1'?false:true" plain
+                <el-button type="info" icon="el-icon-s-tools" size="small " @click="gotoRoomDetail(o.id,'2')" v-if="o.isUse=='1'?false:true" plain
                            circle></el-button>
               </el-tooltip>
             </el-row>
@@ -56,55 +56,128 @@
             <br>
             <time class="time"> {{ getDiffTime(o.startTime, new Date()) }}</time>
 
-            <el-button type="text" class="button" @click="test">操作按钮</el-button>
+            <el-button type="text" class="button" @click="test(o.id)">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
           </div>
         </div>
 
       </el-col>
+      <el-col :span="4" >
+        <el-tooltip class="item" effect="dark" content="新增房间" placement="right">
+
+        <el-card :body-style="{ padding: '4px' }" style="margin-bottom: 5px" shadow="hover" @click.native="gotoRoomDetail(null,'3')">
+          <div style='box-sizing: border-box;border:2px dashed #dedede; height: 250px;width: 100%;color: #dedede;
+          text-align: center;line-height: 220px;font-size: 135px;font-weight: bolder;'>+</div>
+        </el-card>
+        </el-tooltip>
+      </el-col>
+
     </el-row>
 
     <el-drawer
         :visible.sync="roomDetailDw"
-        size="40%" :with-header="false">
+        size="40%" :with-header="false"
+        :before-close="handleClose"
+        :append-to-body="true">
       <div style="padding-left: 15px">
-        <h1 style="font-size: xx-large">房间详情</h1>
-        <el-form ref="form" :model="roomDetail" label-width="80px" style="width: 50%;">
+        <h1 style="font-size: xx-large">{{ roomDetailType==3?'新增房间':'房间详情' }}</h1>
+        <el-form ref="form" :model="roomDetail" label-width="80px" style="width: 50%;" :disabled="roomDetailType==1?true:false">
+          <el-form-item label="房间编号" >
+            <el-input v-model="roomDetail.id" disabled></el-input>
+          </el-form-item>
           <el-form-item label="房间名称">
             <el-input v-model="roomDetail.name"></el-input>
           </el-form-item>
+          <el-form-item label="备注">
+            <el-input type="textarea" v-model="roomDetail.remark"></el-input>
+          </el-form-item>
+          <el-form-item v-if="roomDetailType==1?true:false" label="是否在用">
+            <el-switch :value="roomDetail.isUse==1?true:false"></el-switch>
+          </el-form-item>
+          <el-form-item v-if="roomDetail.isUse==1?true:false" label="开始时间">
+            <el-input :value="formatDate(roomDetail.startTime, 'YYYY-MM-DD HH:mm:ss')"> </el-input>
+          </el-form-item>
         </el-form>
 
-        <el-button @click="inroomDetailDw = true">打开里面的!</el-button>
+        <div style="margin-left: 80px;" class="demo-drawer__footer" v-if="roomDetailType==1?false:true">
+          <el-button type="primary" @click="alert('保存')" :loading="loading">{{ loading ? '提交中 ...' : '保 存' }}</el-button>
+          <el-button @click="cancelForm">取 消</el-button>
+        </div>
+        <div style="margin-left: 80px;" class="demo-drawer__footer" v-if="roomDetailType==1?true:false">
+          <el-button type="primary" v-if="roomDetail.isUse==1?true:false" @click="inroomDetailDw = true">当前订单</el-button>
+          <el-button type="primary" v-if="roomDetail.isUse==0?true:false"  @click="inroomDetailDw = true" >历史订单</el-button>
+          <el-button @click="cancelForm">退出</el-button>
+        </div>
+
         <el-drawer
-            title="我是里面的"
-            :append-to-body="true"
-            :before-close="handleClose"
+            :append-to-body="true" :with-header="false"
             :visible.sync="inroomDetailDw">
-          <p>_(:зゝ∠)_</p>
+          <div style="padding-left: 15px">
+            <h2 style="color: #999999">{{ roomDetail.isUse==1?'当前订单':'历史订单'}}</h2>
+            待完善
+          </div>
+
         </el-drawer>
       </div>
     </el-drawer>
+
+    <el-dialog title="付款界面" :visible.sync="payVisible">
+      <Pay :payRoomId="payRoomId"></Pay>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import moment from 'moment';
-
+import Pay from "@/views/theFog/room/Pay";
 export default {
+  components: {
+    Pay,
+  },
   name: "Main",
+  data() {
+    return {
+      payRoomId:'',
+      roomDatas: [],
+      roomDetailDw: false,
+      roomDetail:{},
+      inroomDetailDw: false,
+      roomDetailType:null,//1 为详情，2为修改，3为新增
+      loading:false,
+      payVisible:false,//结算界面
+    };
+  },
   methods: {
-    handleClose(done) {
-      this.$confirm('还有未保存的工作哦确定关闭吗？')
-          .then(_ => {
-            done();
-          })
-          .catch(_ => {});
+    cleanDwData(){
+      this.roomDetailDw= false;
+      this.roomDetail={};
+      this.roomDetailType=null;//1 为详情，2为修改，3为新增
     },
-    lookRoomDetail(id){
+    goPay(roomId){
+      this.payVisible=true;
+      this.payRoomId=roomId;
+    },
+    cancelForm() {
+      this.cleanDwData();
+    },
+    handleClose(done) {
+      if (this.roomDetailType&&this.roomDetailType==1){
+        this.cleanDwData();
+        done();
+      }else {
+        this.$confirm('是否还有未保存的工作?确定关闭吗？')
+            .then(_ => {
+              this.cleanDwData();
+              done();
+            })
+            .catch(_ => {});
+      }
+    },
+    gotoRoomDetail(id,dealType){
       this.roomDetailDw=true;
+      this.roomDetailType=dealType;
       alert('对接后台获取房间信息接口。');
       var _this=this;
-      _this.tableData.forEach(((value, index) => {
+      _this.roomDatas.forEach(((value, index) => {
         if (value.id==id){
           _this.roomDetail=value;
         }
@@ -112,17 +185,17 @@ export default {
     },
     refreshRoomDetail(id) {
       debugger;
-      var _tableData=this.tableData;
+      var _roomDatas=this.roomDatas;
       alert('对接后台获取房间信息接口。');
       var newTable={};//后台获取
-      _tableData.forEach(((value, index) => {
+      _roomDatas.forEach(((value, index) => {
         if (value.id==id){
           newTable=value;
           newTable.show=false;
           newTable.spanlen=0;
           newTable.isUse='1';
           newTable.remark='测试刷新成在用';
-          _tableData.splice(index, 1, newTable)
+          _roomDatas.splice(index, 1, newTable)
         }
       }))
     },
@@ -162,15 +235,7 @@ export default {
     for (let item = 0; item < data.length; item++) {
       data[item].show = false;
     }
-    this.tableData = data;
-  },
-  data() {
-    return {
-      tableData: [],
-      roomDetailDw: false,
-      roomDetail:{},
-      inroomDetailDw: false,
-    };
+    this.roomDatas = data;
   },
 
   computed: {
