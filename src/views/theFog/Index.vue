@@ -21,7 +21,7 @@
         <el-dropdown>
           <i class="el-icon-setting" style="margin-right: 15px"></i>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item @click.native="alert('以后再说┭┮﹏┭┮')">修改密码</el-dropdown-item>
+            <el-dropdown-item @click.native="editUserInfo">修改密码</el-dropdown-item>
             <el-dropdown-item @click.native="loginOutShow = true">登出</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -99,6 +99,9 @@ export default {
     }, 1000)
   },
   methods: {
+    editUserInfo(){
+      alert('以后再说。')
+    },
     signOut (){
       this.loginOutShow = false;
       window.sessionStorage.clear();

@@ -56,6 +56,7 @@ export default {
     doLogin(){//一点击登录按钮，这个方法就会执行
       debugger;
       // alert(JSON.stringify(this.user))//可以直接把this.user对象传给后端进行校验用户名和密码
+      alert('对应注册的接口对接。');
       this.$store.commit('setUserId',this.user.id);
       this.$store.commit('setUserInfo',JSON.stringify(this.user));
       this.$router.push('/Main');
@@ -64,6 +65,7 @@ export default {
     doRegister(){//一点击登录按钮，这个方法就会执行
       debugger;
       // alert('自动注册登录'+JSON.stringify(this.user))//可以直接把this.user对象传给后端进行校验用户名和密码
+      alert('对应登录密码校验的接口对接。');
       this.$store.commit('setUserId',this.user.id);
       this.$store.commit('setUserInfo',JSON.stringify(this.user));
       this.$router.push('/Main');

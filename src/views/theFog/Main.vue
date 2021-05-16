@@ -5,7 +5,8 @@
         <el-row>
           <el-col :span="24-o.spanlen%8">
             <el-card :body-style="{ padding: '4px' }" style="margin-bottom: 5px" shadow="hover"
-                     @click.native="o.show=!o.show,o.spanlen=o.spanlen+4">
+                     @click.native="o.show=!o.show,
+                     !o.spanlen?o.spanlen=0:o.spanlen=o.spanlen,o.spanlen=o.spanlen+4">
               <!--          <img src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">-->
               <div :class="checkClass(o.isUse)">{{ o.name }}</div>
             </el-card>
@@ -13,12 +14,12 @@
           <el-col style="margin-top: 8px;" :span="o.spanlen%8" v-if="o.show">
             <el-row>
               <el-tooltip class="item" effect="dark" content="详情" placement="right">
-                <el-button icon="el-icon-info" size="small " plain circle></el-button>
+                <el-button icon="el-icon-info" size="small " @click="lookRoomDetail(o.id)" plain circle></el-button>
               </el-tooltip>
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="刷新" placement="right">
-                <el-button type="success" icon="el-icon-refresh" size="small " plain circle></el-button>
+                <el-button type="success" icon="el-icon-refresh" size="small " @click="refreshRoomDetail(o.id)" plain circle></el-button>
               </el-tooltip>
             </el-row>
             <el-row>
@@ -61,6 +62,28 @@
 
       </el-col>
     </el-row>
+
+    <el-drawer
+        :visible.sync="roomDetailDw"
+        size="40%" :with-header="false">
+      <div style="padding-left: 15px">
+        <h1 style="font-size: xx-large">房间详情</h1>
+        <el-form ref="form" :model="roomDetail" label-width="80px" style="width: 50%;">
+          <el-form-item label="房间名称">
+            <el-input v-model="roomDetail.name"></el-input>
+          </el-form-item>
+        </el-form>
+
+        <el-button @click="inroomDetailDw = true">打开里面的!</el-button>
+        <el-drawer
+            title="我是里面的"
+            :append-to-body="true"
+            :before-close="handleClose"
+            :visible.sync="inroomDetailDw">
+          <p>_(:зゝ∠)_</p>
+        </el-drawer>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
@@ -70,11 +93,38 @@ import moment from 'moment';
 export default {
   name: "Main",
   methods: {
-
-    getTableDetail(id) {
-      alert('刷新卡片id为'+id+'值');
-      var newTable={id: id, name: '一号桌', remark: '测试刷新', isUse: '0', startTime: new Date('2021-05-12 00:14:55')}
-      this.tableData.find
+    handleClose(done) {
+      this.$confirm('还有未保存的工作哦确定关闭吗？')
+          .then(_ => {
+            done();
+          })
+          .catch(_ => {});
+    },
+    lookRoomDetail(id){
+      this.roomDetailDw=true;
+      alert('对接后台获取房间信息接口。');
+      var _this=this;
+      _this.tableData.forEach(((value, index) => {
+        if (value.id==id){
+          _this.roomDetail=value;
+        }
+      }))
+    },
+    refreshRoomDetail(id) {
+      debugger;
+      var _tableData=this.tableData;
+      alert('对接后台获取房间信息接口。');
+      var newTable={};//后台获取
+      _tableData.forEach(((value, index) => {
+        if (value.id==id){
+          newTable=value;
+          newTable.show=false;
+          newTable.spanlen=0;
+          newTable.isUse='1';
+          newTable.remark='测试刷新成在用';
+          _tableData.splice(index, 1, newTable)
+        }
+      }))
     },
     test(e) {
       alert(e);
@@ -111,13 +161,15 @@ export default {
     ]
     for (let item = 0; item < data.length; item++) {
       data[item].show = false;
-      data[item].spanlen = 0;
     }
     this.tableData = data;
   },
   data() {
     return {
       tableData: [],
+      roomDetailDw: false,
+      roomDetail:{},
+      inroomDetailDw: false,
     };
   },
 
