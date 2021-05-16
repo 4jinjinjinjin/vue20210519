@@ -216,21 +216,18 @@ export default {
   },
   created() {
     let data = [
-      {id: '1', name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: '2', name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '3', name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '4', name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '5', name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: '6', name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: '7', name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '8', name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '9', name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '10', name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: '11', name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: '12', name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '13', name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '14', name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: '15', name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      {id: 1, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      {id: 2, name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
+      {id: 3, name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
+      {id: 4, name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
+      {id: 5, name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      {id: 6, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      {id:7, name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
+      {id: 8, name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
+      {id: 9, name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
+      {id: 10, name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      {id: 11, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      {id: 12, name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
     ]
     for (let item = 0; item < data.length; item++) {
       data[item].show = false;
