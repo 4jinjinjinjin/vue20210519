@@ -11,6 +11,8 @@ import Goods from "@/views/theFog/Goods";
 Vue.use(VueRouter)
 
 const routes = [
+
+  { path: '/', redirect: '/login' },
   {
     path: '/login',
     name: '登录',

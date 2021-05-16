@@ -1,6 +1,16 @@
 <template>
-
   <div id="Index">
+    <el-dialog
+        title="提示"
+        :visible.sync="loginOutShow"
+        width="20%">
+      <span>确认退出登录?</span>
+      <span slot="footer" class="dialog-footer">
+            <el-button @click="loginOutShow = false">取 消</el-button>
+            <el-button type="primary" @click="signOut">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <el-container style="border: 1px solid #eee">
       <el-header style="text-align: right; font-size: 12px">
         <div style="float: left;">
@@ -11,13 +21,13 @@
         <el-dropdown>
           <i class="el-icon-setting" style="margin-right: 15px"></i>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>查看</el-dropdown-item>
-            <el-dropdown-item>新增</el-dropdown-item>
-            <el-dropdown-item>删除</el-dropdown-item>
+            <el-dropdown-item @click.native="alert('以后再说┭┮﹏┭┮')">修改密码</el-dropdown-item>
+            <el-dropdown-item @click.native="loginOutShow = true">登出</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <span>王小虎</span>
+        <span>{{ userInfo.username}}</span>
       </el-header>
+
 
       <el-container>
         <el-aside width="250px" style="background-color: rgb(238, 241, 246)">
@@ -59,22 +69,29 @@ export default {
   name: "Index",
 
   data() {
-
     const item = {
       date: '2016-05-02',
       name: '王xxxxx',
       address: '上海市普陀区金沙江路 1518 弄'
     };
     return {
+      loginOutShow:false,
       url: 'require(../pic/logo.png)',
       tableData: Array(20).fill(item),
       nowWeek: '',
       nowDate: '',
       nowTime: '',
+      userId:sessionStorage.getItem('userId'),
+      userInfo:JSON.parse(sessionStorage.getItem('userInfo')),
+
     };
   },
   created() {
     this.setNowTimes();
+    if (!sessionStorage.getItem('userId')){
+      alert('请先登录后在进行操作！');
+      this.signOut();
+    }
   },
   mounted() {
     this.timer = setInterval(() => {
@@ -82,6 +99,11 @@ export default {
     }, 1000)
   },
   methods: {
+    signOut (){
+      this.loginOutShow = false;
+      window.sessionStorage.clear();
+      this.$router.push({path:'/login'});
+    },
     setNowTimes() {
       let myDate = new Date()
       // console.log(myDate)

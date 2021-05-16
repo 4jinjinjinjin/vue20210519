@@ -71,17 +71,13 @@ export default {
   name: "Main",
   methods: {
 
+    getTableDetail(id) {
+      alert('刷新卡片id为'+id+'值');
+      var newTable={id: id, name: '一号桌', remark: '测试刷新', isUse: '0', startTime: new Date('2021-05-12 00:14:55')}
+      this.tableData.find
+    },
     test(e) {
       alert(e);
-    },
-    showAndHide(event) {
-      debugger;
-      let _el = event.currentTarget
-      if (_el.getAttribute('class') === 'active') {
-        _el.setAttribute('class', '')
-      } else {
-        _el.setAttribute('class', 'active')
-      }
     },
     getDiffTime: function (startTime, endTime) {
       if (startTime && endTime) {
