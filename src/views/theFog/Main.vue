@@ -120,7 +120,7 @@
       </div>
     </el-drawer>
 
-    <el-dialog title="付款界面" :visible.sync="payVisible">
+    <el-dialog title="付款界面" :visible.sync="payVisible" :before-close="payClose" fullscreen="true">
       <Pay :payRoomId="payRoomId"></Pay>
     </el-dialog>
   </div>
@@ -147,6 +147,15 @@ export default {
     };
   },
   methods: {
+    payClose(done) {
+      let _this= this;
+      this.$confirm('确认取消结算？')
+          .then(_ => {
+            _this.refreshRoomDetail();
+            done();
+          })
+          .catch(_ => {});
+    },
     cleanDwData(){
       this.roomDetailDw= false;
       this.roomDetail={};
