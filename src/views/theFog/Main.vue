@@ -56,7 +56,7 @@
             <br>
             <time class="time"> {{ getDiffTime(o.startTime, new Date()) }}</time>
 
-            <el-button type="text" class="button" @click="test(o.id)">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
+            <el-button type="text" class="button" @click="o.isUse=='1'?goPay(o.id):test(o.id) ">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
           </div>
         </div>
 
@@ -119,16 +119,18 @@
         </el-drawer>
       </div>
     </el-drawer>
-
-    <el-dialog v-if="payVisible" title="付款界面" :visible.sync="payVisible" :before-close="payClose" :fullscreen="true" >
-      <Pay :payRoomId="payRoomId"></Pay>
-    </el-dialog>
+    <transition name="el-zoom-in-center">
+      <el-dialog v-if="payVisible" title="付款界面" :visible.sync="payVisible" :before-close="payClose" :fullscreen="true" >
+        <Pay :payRoomId="payRoomId"></Pay>
+      </el-dialog>
+    </transition>
   </div>
 </template>
 
 <script>
 import moment from 'moment';
 import Pay from "@/views/theFog/room/Pay";
+import 'element-ui/lib/theme-chalk/base.css';
 export default {
   components: {
     Pay,
@@ -147,15 +149,11 @@ export default {
     };
   },
   methods: {
-    payClose() {
+    payClose(flag) {
       let _this= this;
-      this.$confirm('确认取消结算？')
-          .then(_ => {
-            _this.refreshRoomDetail();
-            _this.payVisible=false;
-            // done();
-          })
-          .catch(_ => {});
+
+      _this.refreshRoomDetail();
+      _this.payVisible=false;
     },
     cleanDwData(){
       this.roomDetailDw= false;

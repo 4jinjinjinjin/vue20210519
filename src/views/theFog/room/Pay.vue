@@ -143,7 +143,7 @@
         </div>
         <div style="display: flex;margin-top: 5px">
           <span style="margin-left:10px; width:170px;font-size:xx-large;font-weight: bolder;color: #535353">支付方式：</span>
-          <el-select style="width:160px;" v-model="payType" placeholder="请选择">
+          <el-select style="width:160px;" @change="payTypeChange" v-model="payType" placeholder="请选择">
             <el-option
                 v-for="item in payTypeList"
                 :key="item.value"
@@ -151,19 +151,26 @@
                 :value="item.value">
             </el-option>
           </el-select>
+          <el-input @click.native="chooseMember" v-if="memberIf" :readonly=true style="width:220px;margin-left: 5px" placeholder="选择会员信息"
+                    :value="memberData.name">
+            <el-button slot="append" icon="el-icon-search"></el-button>
+          </el-input>
+          <el-link  type="success" v-if="memberData.balance" style="margin-left: 7px;margin-top: 22px; width:80px;font-size:smaller;">
+            <span @click="gotoMemberTopUp">{{'余额：'+memberData.balance+'元'}}</span>
+          </el-link>
         </div>
         <div style="display: flex;margin-top: 5px">
           <span style="margin-left:10px; width:170px;font-size:xx-large;font-weight: bolder;color: #535353">支付备注：</span>
           <el-input
               type="textarea"
-              style="width: 450px"
+              style="width: 460px"
               :autosize="{ minRows: 2, maxRows: 4}"
               placeholder="请输入内容"
               v-model="payRemark">
           </el-input>
         </div>
         <div style='position: absolute;bottom: 20px;right:20px'>
-          <el-button type="primary">确认结算</el-button>
+          <el-button type="primary"  @click="doPay">确认结算</el-button>
           <el-button type="info" @click="payClose">退出</el-button>
         </div>
       </div>
@@ -182,6 +189,7 @@ export default {
   },
   data(){
     return {
+      memberIf:false,
       payRemark:'',
       model1:'1',
       payType:1,
@@ -200,6 +208,16 @@ export default {
         paidAmount:0.00,
         unpaidAmount:0.00,
       },
+      payData:{
+        type:'1',
+        flag:'',
+        amount: 0.00,
+        orderId:'',
+        payMember:-1,
+        remark:'',
+      },
+      memberData:{
+      },
       orderDetail: [],
       roomData: {},
       orderData: {id:20210524},
@@ -209,8 +227,60 @@ export default {
 
   },
   methods:{
+    doPay(){
+      let _this=this;
+      this.$confirm('确认是否金额已经入账？')
+          .then(_ => {
+            _this.$message({
+              message: '结算成功！',
+              type: 'success'
+            });
+            this.$parent.$parent.payClose();
+          })
+          .catch(_ => {
+
+          });
+    },
+    gotoMemberTopUp(){
+      alert('开始充值');
+
+      this.memberData={
+        id:123,
+        name:'测试会员',
+        balance:150.00,
+      };
+    },
+    chooseMember(){
+      alert('选择会员信息');
+      this.memberData={
+        id:123,
+        name:'测试会员',
+        balance:50.00,
+      };
+      this.inputAmountChange();
+    },
+    payTypeChange(){
+      this.memberData={};
+      if (this.payType=='4'){//会员支付
+        this.memberIf=true;
+      }else {
+        this.memberIf=false;
+      }
+    },
     payClose(){
-      return this.$parent.$options.parent.payClose();
+
+      let _this=this;
+      this.$confirm('确认取消结算？？')
+          .then(_ => {
+            _this.$message({
+              message: '取消结算！',
+              type: 'warning'
+            });
+            this.$parent.$parent.payClose();
+          })
+          .catch(_ => {
+
+          });
     },
     inputAmountChange() { //输入框值改变
       debugger;
@@ -221,14 +291,17 @@ export default {
       if (wantPayAmount>unpaidAmount){
         wantPayAmount=unpaidAmount;
       }
+      if (wantPayAmount>this.memberData.balance){
+        wantPayAmount=this.memberData.balance;
+      }
       this.pageData.wantPayAmount=wantPayAmount.toFixed(2);
 
     },
     formatDate(date,format){
-      return this.$parent.$options.parent.formatDate(date,format);
+      return this.$parent.$parent.formatDate(date,format);
     },
     getDiffTime(startTime, endTime){
-      return this.$parent.$options.parent.getDiffTime(startTime,endTime);
+      return this.$parent.$parent.getDiffTime(startTime,endTime);
     },
   },
   created() {
