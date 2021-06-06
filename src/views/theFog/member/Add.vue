@@ -39,6 +39,7 @@ export default {
     return {
       member: {
         id: '',
+        name: '',
         sex: '',
         phone: '',
         address: '',
@@ -62,14 +63,18 @@ export default {
       this.$parent.$parent.addClose();
     },
     onSubmit(formName) {
+      let _this=this;
       this.$refs[formName].validate((valid) => {
         if (valid) {
+          debugger;
           //开始新增
           this.$message({
             message: '新增成功！',
             type: 'success'
           });
           this.$parent.$parent._data.addVisible=false;
+          this.$parent.$parent._data.search=_this.member.name;
+
         }
       });
     }

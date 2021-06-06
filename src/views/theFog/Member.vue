@@ -48,7 +48,7 @@
           <el-button
               size="mini"
               type="success"
-              @click="handleEdit(scope.$index, scope.row)">余额充值</el-button>
+              @click="goCharge( scope.row)">余额充值</el-button>
           <el-button
               size="mini"
               type="primary"
@@ -66,8 +66,15 @@
     </el-table>
 
     <transition name="el-zoom-in-center">
-      <el-dialog v-if="addVisible" title="付款界面" width="600px" :visible.sync="addVisible" :before-close="addClose"  >
+      <el-dialog v-if="addVisible" title="新增会员" width="600px" :visible.sync="addVisible" :before-close="addClose"  >
         <Add></Add>
+      </el-dialog>
+    </transition>
+
+
+    <transition name="el-zoom-in-center">
+      <el-dialog v-if="chargeVisible" title="会员充值" :visible.sync="chargeVisible" :before-close="chargeClose"  >
+        <Charge :chargeMemberData="chargeMemberData"></Charge>
       </el-dialog>
     </transition>
   </div>
@@ -75,9 +82,11 @@
 
 <script>
 import Add from "@/views/theFog/member/Add";
+import Charge from "@/views/theFog/member/Charge";
 export default {
   components: {
     Add,
+    Charge,
   },
   name: "Member",
   methods: {
@@ -105,6 +114,21 @@ export default {
           .then(_ => {
             _this.doRefresh();
             _this.addVisible=false;
+            done();
+          })
+          .catch(_ => {});
+    },
+    goCharge(rowData){
+      debugger;
+      this.chargeMemberData=rowData;
+      this.chargeVisible=true;
+    },
+    chargeClose(done) {
+      let _this= this;
+      this.$confirm('是否还有未保存的工作?确定关闭吗？')
+          .then(_ => {
+            _this.doRefresh();
+            _this.chargeVisible=false;
             done();
           })
           .catch(_ => {});
@@ -140,8 +164,9 @@ export default {
   data() {
     return {
       search:'',
-      addVisible:false,//结算界面
-
+      addVisible:false,//新增界面
+      chargeMemberData:{},
+      chargeVisible:false,//充值界面
 
       memberData: [],
       nowWeek: '',

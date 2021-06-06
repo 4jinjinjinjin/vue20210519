@@ -136,10 +136,10 @@
         <div style="display: flex;">
           <span style="margin-left:10px; width:170px;font-size:xx-large;font-weight: bolder;color: #d44a4a">支付金额：</span>
           <div style="width: 160px">
-            <el-input label="订单总额"  class="inputAmount" @input="inputAmountChange" v-model="pageData.wantPayAmount" ></el-input>
+            <el-input label="订单总额"  class="inputAmount" @blur="inputAmountChange" v-model="pageData.wantPayAmount" ></el-input>
           </div>
           <span  style="margin-left: 5px; width:30px;font-size:xx-large;font-weight: bolder;color: #d44a4a">元</span>
-          <span  style="margin-left: 7px;margin-top: 22px; width:200px;font-size:smaller;">(金额范围为0~{{pageData.wantPayAmount}}之间)</span>
+          <span  style="margin-left: 7px;margin-top: 22px; width:200px;font-size:smaller;">(金额范围为0~{{pageData.unpaidAmount}}之间)</span>
         </div>
         <div style="display: flex;margin-top: 5px">
           <span style="margin-left:10px; width:170px;font-size:xx-large;font-weight: bolder;color: #535353">支付方式：</span>
