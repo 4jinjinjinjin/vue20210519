@@ -185,7 +185,6 @@ export default {
   // 接受父组件的值
   props: {
     payRoomId: Number,
-    payVisible: Boolean
   },
   data(){
     return {

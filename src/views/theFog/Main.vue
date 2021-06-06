@@ -24,13 +24,13 @@
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="接客" placement="right">
-                <el-button type="warning" icon="el-icon-circle-plus " size="small " v-if="o.isUse=='1'?false:true" plain
+                <el-button type="warning" icon="el-icon-circle-plus " size="small " @click="creatOrder(o.id,o.name)" v-if="o.isUse=='1'?false:true" plain
                            circle></el-button>
               </el-tooltip>
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="点单" placement="right">
-                <el-button type="danger" icon="el-icon-shopping-cart-full" size="small " v-if="o.isUse=='1'?true:false"
+                <el-button type="danger" icon="el-icon-shopping-cart-full" size="small "   @click="goShopping(o.id)" v-if="o.isUse=='1'?true:false"
                            plain circle></el-button>
               </el-tooltip>
             </el-row>
@@ -56,7 +56,7 @@
             <br>
             <time class="time"> {{ getDiffTime(o.startTime, new Date()) }}</time>
 
-            <el-button type="text" class="button" @click="o.isUse=='1'?goPay(o.id):test(o.id) ">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
+            <el-button type="text" class="button" @click="o.isUse=='1'?goPay(o.id):creatOrder(o.id,o.name) ">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
           </div>
         </div>
 
@@ -124,20 +124,29 @@
         <Pay :payRoomId="payRoomId"></Pay>
       </el-dialog>
     </transition>
+    <transition name="el-zoom-in-center">
+      <el-dialog width="1200px" v-if="shopVisible" title="消费界面" :visible.sync="shopVisible" :before-close="shopClose">
+        <Shopping :shopRoomId="shopRoomId"></Shopping>
+      </el-dialog>
+    </transition>
   </div>
 </template>
 
 <script>
 import moment from 'moment';
-import Pay from "@/views/theFog/room/Pay";
+import Pay from "@/views/theFog/order/Pay";
 import 'element-ui/lib/theme-chalk/base.css';
+import Shopping from "@/views/theFog/order/Shopping";
 export default {
   components: {
     Pay,
+    Shopping,
   },
   name: "Main",
   data() {
     return {
+      shopRoomId:'',
+      shopVisible:false,
       payRoomId:'',
       roomDatas: [],
       roomDetailDw: false,
@@ -149,11 +158,37 @@ export default {
     };
   },
   methods: {
-    payClose(flag) {
+    payClose() {
       let _this= this;
 
       _this.refreshRoomDetail();
       _this.payVisible=false;
+    },
+    shopClose() {
+      let _this= this;
+      _this.refreshRoomDetail();
+      _this.shopVisible=false;
+    },
+    creatOrder : async function(roomId,roomname){
+      let _this= this;
+      this.$confirm(roomname+'是否开始接客?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        // type: 'warning'
+      }).then(() => {
+        this.$message({
+          type: 'success',
+          message: '成功接客!'
+        });
+        alert('开始接客'+roomId)
+        _this.refreshRoomDetail(roomId);
+        _this.goShopping(roomId);
+      }).catch((e) => {
+        this.$message({
+          type: 'info',
+          message: '取消接客'
+        });
+      });
     },
     cleanDwData(){
       this.roomDetailDw= false;
@@ -163,6 +198,10 @@ export default {
     goPay(roomId){
       this.payVisible=true;
       this.payRoomId=roomId;
+    },
+    goShopping(roomId){
+      this.shopVisible=true;
+      this.shopRoomId=roomId;
     },
     cancelForm() {
       this.cleanDwData();

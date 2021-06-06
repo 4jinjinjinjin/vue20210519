@@ -32,7 +32,6 @@ export default {
   name: "Add",
   props: {
     payRoomId: Number,
-    payVisible: Boolean
   },
 
   data() {
