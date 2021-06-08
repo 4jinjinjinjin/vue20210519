@@ -16,7 +16,8 @@
           <tr>
             <td>密码</td>
             <td>
-              <el-input type="password" v-model="user.password" placeholder="请输入密码" @keydown.enter.native="doLogin"></el-input>
+              <el-input type="password" v-model="user.password" placeholder="请输入密码"
+                        @keydown.enter.native="doLogin"></el-input>
               <!-- @keydown.enter.native="doLogin"当按下enter键的时候也会执行doLogin方法-->
             </td>
           </tr>
@@ -44,31 +45,47 @@ export default {
   name: "Login",
   //单页面中不支持前面的data:{}方式
   data() {
-    return{
-      user:{
-        id:1,
-        username:'测试',
-        password:'123',
+    return {
+      user: {
+        id: 1,
+        username: '测试',
+        password: '123',
       }
     }
   },
   methods: {
-    doLogin(){//一点击登录按钮，这个方法就会执行
+    doRegister() {//一点击登录按钮，这个方法就会执行
       debugger;
       // alert(JSON.stringify(this.user))//可以直接把this.user对象传给后端进行校验用户名和密码
       alert('对应注册的接口对接。');
-      this.$store.commit('setUserId',this.user.id);
-      this.$store.commit('setUserInfo',JSON.stringify(this.user));
+      this.$store.commit('setUserId', this.user.id);
+      this.$store.commit('setUserInfo', JSON.stringify(this.user));
       this.$router.push('/Main');
 
     },
-    doRegister(){//一点击登录按钮，这个方法就会执行
-      debugger;
-      // alert('自动注册登录'+JSON.stringify(this.user))//可以直接把this.user对象传给后端进行校验用户名和密码
-      alert('对应登录密码校验的接口对接。');
-      this.$store.commit('setUserId',this.user.id);
-      this.$store.commit('setUserInfo',JSON.stringify(this.user));
-      this.$router.push('/Main');
+    doLogin: async function () {//一点击登录按钮，这个方法就会执行
+      let _this = this;
+      try {
+        let data = await _this.$axios.get(_this.$baseUrl + '/thefog/user/checkUserLogin',{
+          params:{
+            username: _this.user.username,
+            password: _this.user.password
+          }
+        })
+        _this.utils.showSuccessTip(_this,'登录成功');
+        // this.$message({
+        //   message: '登录成功！',
+        //   type: 'success'
+        // });
+        this.$store.commit('setUserId', this.user.id);
+        this.$store.commit('setUserInfo', JSON.stringify(this.user));
+        this.$router.push('/Main');
+        console.log(data);
+      } catch (e) {
+        console.log(e);
+        debugger;
+        _this.utils.showErrorTip(_this,'登录失败，失败原因：'+2e);
+      }
 
     },
   }
