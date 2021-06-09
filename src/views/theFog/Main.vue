@@ -14,7 +14,7 @@
           <el-col style="margin-top: 8px;" :span="o.spanlen%8" v-if="o.show">
             <el-row>
               <el-tooltip class="item" effect="dark" content="详情" placement="right">
-                <el-button icon="el-icon-info" size="small " @click="gotoRoomDetail(o.id,'1')" plain circle></el-button>
+                <el-button icon="el-icon-info" size="small " @click="gotoRoomDetail(o,'1')" plain circle></el-button>
               </el-tooltip>
             </el-row>
             <el-row>
@@ -42,7 +42,7 @@
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="设置" placement="right">
-                <el-button type="info" icon="el-icon-s-tools" size="small " @click="gotoRoomDetail(o.id,'2')" v-if="o.isUse=='1'?false:true" plain
+                <el-button type="info" icon="el-icon-s-tools" size="small " @click="gotoRoomDetail(o,'2')" v-if="o.isUse=='1'?false:true" plain
                            circle></el-button>
               </el-tooltip>
             </el-row>
@@ -64,7 +64,7 @@
       <el-col :span="4" >
         <el-tooltip class="item" effect="dark" content="新增房间" placement="right">
 
-        <el-card :body-style="{ padding: '4px' }" style="margin-bottom: 5px" shadow="hover" @click.native="gotoRoomDetail(null,'3')">
+        <el-card :body-style="{ padding: '4px' }" style="margin-bottom: 5px" shadow="hover" @click.native="gotoRoomDetail({},'3')">
           <div style='box-sizing: border-box;border:2px dashed #dedede; height: 250px;width: 100%;color: #dedede;
           text-align: center;line-height: 220px;font-size: 135px;font-weight: bolder;'>+</div>
         </el-card>
@@ -74,17 +74,18 @@
     </el-row>
 
     <el-drawer
+        v-if="roomDetailDw"
         :visible.sync="roomDetailDw"
         size="40%" :with-header="false"
         :before-close="handleClose"
         :append-to-body="true">
       <div style="padding-left: 15px">
         <h1 style="font-size: xx-large">{{ roomDetailType==3?'新增房间':'房间详情' }}</h1>
-        <el-form ref="form" :model="roomDetail" label-width="80px" style="width: 50%;" :disabled="roomDetailType==1?true:false">
-          <el-form-item label="房间编号" >
+        <el-form ref="form" :model="roomDetail" label-width="80px" style="width: 50%;" :disabled="roomDetailType==1?true:false" :rules="rules">
+          <el-form-item label="房间编号"  >
             <el-input v-model="roomDetail.id" disabled></el-input>
           </el-form-item>
-          <el-form-item label="房间名称">
+          <el-form-item label="房间名称"  prop="name">
             <el-input v-model="roomDetail.name"></el-input>
           </el-form-item>
           <el-form-item label="备注">
@@ -99,7 +100,7 @@
         </el-form>
 
         <div style="margin-left: 80px;" class="demo-drawer__footer" v-if="roomDetailType==1?false:true">
-          <el-button type="primary" @click="alert('保存')" :loading="loading">{{ loading ? '提交中 ...' : '保 存' }}</el-button>
+          <el-button type="primary" @click="saveRoom" :loading="loading">{{ loading ? '提交中 ...' : '保 存' }}</el-button>
           <el-button @click="cancelForm">取 消</el-button>
         </div>
         <div style="margin-left: 80px;" class="demo-drawer__footer" v-if="roomDetailType==1?true:false">
@@ -155,6 +156,11 @@ export default {
       roomDetailType:null,//1 为详情，2为修改，3为新增
       loading:false,
       payVisible:false,//结算界面
+      rules:{
+        name: [
+          { required: true, message: '请输入房间名称', trigger: 'blur' },
+        ]
+      }
     };
   },
   methods: {
@@ -206,6 +212,29 @@ export default {
     cancelForm() {
       this.cleanDwData();
     },
+    saveRoom:async function(){
+      let _this=this;
+      this.$refs["form"].validate(async (valid) =>{
+        debugger;
+        if (valid) {
+          try{
+            await _this.$axios.get(_this.$baseUrl + '/thefog/room/creatRoom',{
+              params:{
+                id:_this.roomDetail.id,
+                name:_this.roomDetail.name,
+                remark:_this.roomDetail.remark
+              }
+            })
+            await _this.refreshRoomDetail();
+            await _this.utils.showSuccessTip(_this,'保存成功！');
+            await _this.cleanDwData();
+          }catch (e) {
+            console.log(e);
+            _this.utils.showErrorTip(_this,'保存失败！失败原因：'+e)
+          }
+        }
+      });
+    },
     handleClose(done) {
       if (this.roomDetailType&&this.roomDetailType==1){
         this.cleanDwData();
@@ -219,35 +248,19 @@ export default {
             .catch(_ => {});
       }
     },
-    gotoRoomDetail(id,dealType){
+    gotoRoomDetail(value,dealType){
       this.roomDetailDw=true;
       this.roomDetailType=dealType;
-      alert('对接后台获取房间信息接口。');
-      var _this=this;
-      _this.roomDatas.forEach(((value, index) => {
-        if (value.id==id){
-          _this.roomDetail=value;
-        }
-      }))
-    },
-    refreshRoomDetail(id) {
+      this.roomDetail=value;
       debugger;
-      var _roomDatas=this.roomDatas;
-      alert('对接后台获取房间信息接口。');
-      var newTable={};//后台获取
-      _roomDatas.forEach(((value, index) => {
-        if (value.id==id){
-          newTable=value;
-          newTable.show=false;
-          newTable.spanlen=0;
-          newTable.isUse='1';
-          newTable.remark='测试刷新成在用';
-          _roomDatas.splice(index, 1, newTable)
-        }
-      }))
     },
-    test(e) {
-      alert(e);
+    refreshRoomDetail:async function(id) {
+      let _this=this;
+      let data = await _this.$axios.get(_this.$baseUrl + '/thefog/room/findAllRoom')
+      for (let item = 0; item < data.length; item++) {
+        data[item].show = false;
+      }
+      this.roomDatas = data;
     },
     getDiffTime: function (startTime, endTime) {
       if (startTime && endTime) {
@@ -261,25 +274,8 @@ export default {
       }
     }
   },
-  created() {
-    let data = [
-      {id: 1, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: 2, name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: 3, name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: 4, name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: 5, name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: 6, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id:7, name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: 8, name: '三号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: 9, name: '四号桌', remark: '测试不在用', isUse: '0', startTime: null},
-      {id: 10, name: '五号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: 11, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
-      {id: 12, name: '二号桌', remark: '测试不在用', isUse: '0', startTime: null},
-    ]
-    for (let item = 0; item < data.length; item++) {
-      data[item].show = false;
-    }
-    this.roomDatas = data;
+  created: async function() {
+    await this.refreshRoomDetail();
   },
 
   computed: {

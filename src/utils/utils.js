@@ -7,6 +7,13 @@ export default {
     },
     showErrorTip: function (view,value) {
         view.$message.error(value);
-    }
+    },
+    showWarningTip: function (view,value) {
+        view.$message({
+            message: value,
+            type: 'warning'
+        });
+    },
+
 
 }

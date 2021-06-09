@@ -19,12 +19,10 @@ const _axios = axios.create(config);
 _axios.interceptors.request.use(
   function(config) {
     // Do something before request is sent
-    console.log('request:'+config);
     return config;
   },
   function(error) {
     // Do something with request error
-    console.log('request:reject'+error);
     return Promise.reject(error);
   }
 );
@@ -32,8 +30,6 @@ _axios.interceptors.request.use(
 // Add a response interceptor
 _axios.interceptors.response.use(
   function(response) {
-      debugger
-    console.log('response:resolve'+response);
     if (response.status !== 200) {
       this.$toast('Error')
       return Promise.reject(new Error('Error'))
@@ -49,8 +45,6 @@ _axios.interceptors.response.use(
       }
   },
   function(error) {
-    // Do something with response error
-    console.log('response:reject'+error);
     return Promise.reject(error);
   }
 );

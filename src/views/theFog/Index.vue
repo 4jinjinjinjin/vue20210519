@@ -76,8 +76,6 @@ export default {
     };
     return {
       loginOutShow:false,
-      url: 'require(../pic/logo.png)',
-      tableData: Array(20).fill(item),
       nowWeek: '',
       nowDate: '',
       nowTime: '',

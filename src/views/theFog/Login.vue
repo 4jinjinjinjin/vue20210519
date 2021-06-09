@@ -39,52 +39,82 @@
 </template>
 
 <script>
-import router from "@/router";
-
 export default {
   name: "Login",
   //单页面中不支持前面的data:{}方式
   data() {
     return {
       user: {
-        id: 1,
-        username: '测试',
-        password: '123',
+        id: '',
+        username: '',
+        password: '',
       }
     }
   },
   methods: {
-    doRegister() {//一点击登录按钮，这个方法就会执行
-      debugger;
-      // alert(JSON.stringify(this.user))//可以直接把this.user对象传给后端进行校验用户名和密码
-      alert('对应注册的接口对接。');
-      this.$store.commit('setUserId', this.user.id);
-      this.$store.commit('setUserInfo', JSON.stringify(this.user));
-      this.$router.push('/Main');
-
-    },
-    doLogin: async function () {//一点击登录按钮，这个方法就会执行
+    doRegister: async function () {//注册按钮
       let _this = this;
       try {
-        let data = await _this.$axios.get(_this.$baseUrl + '/thefog/user/checkUserLogin',{
-          params:{
+        if (!_this.user.username&&_this.user.username!==0){
+          _this.utils.showWarningTip(_this, '请输入用户名！');
+          return;
+        }
+        if (!_this.user.password&&_this.user.password!==0){
+          _this.utils.showWarningTip(_this, '请输入密码！');
+          return;
+        }
+        let data = await _this.$axios.get(_this.$baseUrl + '/thefog/user/registerLoginUser', {
+          params: {
             username: _this.user.username,
             password: _this.user.password
           }
         })
-        _this.utils.showSuccessTip(_this,'登录成功');
-        // this.$message({
-        //   message: '登录成功！',
-        //   type: 'success'
-        // });
-        this.$store.commit('setUserId', this.user.id);
-        this.$store.commit('setUserInfo', JSON.stringify(this.user));
-        this.$router.push('/Main');
-        console.log(data);
+        if (data) {
+          _this.user = data;
+          _this.utils.showSuccessTip(_this, '注册成功');
+          this.$store.commit('setUserId', this.user.id);
+          this.$store.commit('setUserInfo', JSON.stringify(this.user));
+          console.log('注册成功,' + sessionStorage.getItem('userId'));
+          this.$router.push('/Main');
+        } else {
+          _this.utils.showWarningTip(_this, '注册失败，缺少返回数据。');
+        }
       } catch (e) {
-        console.log(e);
+        console.log('注册失败，失败原因：' + e);
+        _this.utils.showErrorTip(_this, '注册失败，失败原因：' + e);
+      }
+    },
+    doLogin: async function () {//一点击登录按钮，这个方法就会执行
+      let _this = this;
+      try {
         debugger;
-        _this.utils.showErrorTip(_this,'登录失败，失败原因：'+2e);
+        if (!_this.user.username&&_this.user.username!==0){
+          _this.utils.showWarningTip(_this, '请输入用户名！');
+          return;
+        }
+        if (!_this.user.password&&_this.user.password!==0){
+          _this.utils.showWarningTip(_this, '请输入密码！');
+          return;
+        }
+        let data = await _this.$axios.get(_this.$baseUrl + '/thefog/user/checkUserLogin', {
+          params: {
+            username: _this.user.username,
+            password: _this.user.password
+          }
+        })
+        if (data) {
+          _this.user = data;
+          _this.utils.showSuccessTip(_this, '登录成功');
+          this.$store.commit('setUserId', this.user.id);
+          this.$store.commit('setUserInfo', JSON.stringify(this.user));
+          console.log('登录成功,' + sessionStorage.getItem('userId'));
+          this.$router.push('/Main');
+        } else {
+          _this.utils.showWarningTip(_this, '登录失败，缺少返回数据。');
+        }
+      } catch (e) {
+        console.log('登录失败，失败原因：' + e);
+        _this.utils.showErrorTip(_this, '登录失败，失败原因：' + e);
       }
 
     },
