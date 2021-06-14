@@ -1,5 +1,5 @@
 <template>
-  <div id="Main">
+  <div id="Main" v-loading="mask">
     <el-row>
       <el-col :span="4" v-for="(o, index) in roomDatas" :key="o.id" :offset="index > 0 ? 0 : 0">
         <el-row>
@@ -155,6 +155,7 @@ export default {
       inroomDetailDw: false,
       roomDetailType:null,//1 为详情，2为修改，3为新增
       loading:false,
+      mask:false,
       payVisible:false,//结算界面
       rules:{
         name: [
@@ -175,25 +176,27 @@ export default {
       _this.refreshRoomDetail();
       _this.shopVisible=false;
     },
-    creatOrder : async function(roomId,roomname){
+    creatOrder : function(roomId,roomname){
       let _this= this;
       this.$confirm(roomname+'是否开始接客?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         // type: 'warning'
-      }).then(() => {
-        this.$message({
-          type: 'success',
-          message: '成功接客!'
-        });
-        alert('开始接客'+roomId)
-        _this.refreshRoomDetail(roomId);
-        _this.goShopping(roomId);
+      }).then(async () => {
+        _this.mask=true;
+        let data = await _this.$axios.get(_this.$baseUrl + '/thefog/room/creatOrder', {
+          params: {
+            roomId: roomId,
+            empId: sessionStorage.getItem('userId')
+          }
+        })
+        await _this.utils.showSuccessTip(_this,'接客成功！');
+        await _this.refreshRoomDetail(roomId);
+        await _this.goShopping(roomId);
+        _this.mask=false;
       }).catch((e) => {
-        this.$message({
-          type: 'info',
-          message: '取消接客'
-        });
+        _this.mask=false;
+        _this.utils.showErrorTip(_this,'接客失败，失败原因：'+e.message||e)
       });
     },
     cleanDwData(){

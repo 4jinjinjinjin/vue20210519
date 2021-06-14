@@ -106,16 +106,23 @@ export default {
     },
     onSubmit(formName) {
       let _this = this;
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async(valid) =>{
         if (valid) {
           debugger;
-          //开始新增
-          this.$message({
-            message: '新增成功！',
-            type: 'success'
-          });
-          this.$parent.$parent._data.orderDetailDw = false;
+          try {
+            _this.orderDetail.operator=sessionStorage.getItem('userId');
+            await _this.$axios.get(_this.$baseUrl + '/thefog/order/creatOrderDetail',{
+              params:{
+                orderDetail:JSON.stringify(_this.orderDetail),
+              }
+            })
+            _this.$parent.$parent._data.orderDetailDw = false;
+            this.$parent.$parent.doRefresh();
+            _this.utils.showSuccessTip(_this, '操作成功');
 
+          }catch (e) {
+            _this.utils.showErrorTip(_this, '房间订单信息获取异常，异常原因：'+e);
+          }
         }
       });
     }

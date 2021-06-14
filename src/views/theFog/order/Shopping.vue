@@ -1,8 +1,8 @@
 <template>
   <div>
     <div style="display: flex">
-      <el-input  style="width:320px;margin-left: 5px" placeholder="请输入检索内容"
-                 v-model="search" >
+      <el-input style="width:320px;margin-left: 5px" placeholder="请输入检索内容"
+                v-model="search">
         <el-button @click="doRefresh" slot="append" icon="el-icon-refresh"></el-button>
       </el-input>
 
@@ -19,31 +19,31 @@
         <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" inline class="demo-table-expand">
-              <el-form-item label="明细号" label-width="80px" >
+              <el-form-item label="明细号" label-width="80px">
                 <span>{{ props.row.id }}</span>
               </el-form-item>
-              <el-form-item label="订单号"  label-width="80px">
+              <el-form-item label="订单号" label-width="80px">
                 <span>{{ props.row.orderId }}</span>
               </el-form-item>
-              <el-form-item label="商品编号"  label-width="80px">
+              <el-form-item label="商品编号" label-width="80px">
                 <span>{{ props.row.goodsId }}</span>
               </el-form-item>
-              <el-form-item label="商品名称"  label-width="80px">
+              <el-form-item label="商品名称" label-width="80px">
                 <span>{{ props.row.goodsName }}</span>
               </el-form-item>
-              <el-form-item label="商品金额"  label-width="80px">
+              <el-form-item label="商品金额" label-width="80px">
                 <span>{{ props.row.goodsAmount }}</span>
               </el-form-item>
-              <el-form-item label="实算金额"  label-width="80px">
+              <el-form-item label="实算金额" label-width="80px">
                 <span>{{ props.row.realAmount }}</span>
               </el-form-item>
-              <el-form-item label="下单人员"  label-width="80px">
+              <el-form-item label="下单人员" label-width="80px">
                 <span>{{ props.row.operator }}</span>
               </el-form-item>
-              <el-form-item label="下单时间"  label-width="80px">
+              <el-form-item label="下单时间" label-width="80px">
                 <span>{{ formatDate(props.row.opertime, 'YYYY-MM-DD HH:mm:ss') }}</span>
               </el-form-item>
-              <el-form-item label="备注"  label-width="80px">
+              <el-form-item label="备注" label-width="80px">
                 <span>{{ props.row.remark }}</span>
               </el-form-item>
             </el-form>
@@ -81,142 +81,138 @@
             header-align="center"
             label="备注">
         </el-table-column>
-        <el-table-column label="操作" header-align="center" align="right" >
-        <template slot-scope="scope">
-          <el-button
-              size="mini"
-              type="danger"
-              @click="handleDelete(scope.$index, scope.row)">删除费用</el-button>
-          <el-button
-              size="mini"
-              type="info"
-              @click="editDeatil(scope.row)">修改费用</el-button>
-        </template>
-      </el-table-column>
+        <el-table-column label="操作" header-align="center" align="right">
+          <template slot-scope="scope">
+            <el-button
+                size="mini"
+                type="danger"
+                @click="delDetail(scope.row)">删除费用
+            </el-button>
+            <el-button
+                size="mini"
+                type="info"
+                @click="editDetail(scope.row)">修改费用
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
     <el-drawer
         title="新增费用"
-      :visible.sync="orderDetailDw"
-      size="30%"
-      :before-close="detailClose"
-      :append-to-body="true">
-      <Detail v-if="orderDetailDw" style="margin-top: 20px;margin-left: 15px"  :orderId="orderId" :detailType="detailType" :orderDetailProps="orderDetailProps"></Detail>
-  </el-drawer>
+        :visible.sync="orderDetailDw"
+        size="30%"
+        :before-close="detailClose"
+        :append-to-body="true">
+      <Detail v-if="orderDetailDw" style="margin-top: 20px;margin-left: 15px" :orderId="orderId"
+              :detailType="detailType" :orderDetailProps="orderDetailProps"></Detail>
+    </el-drawer>
   </div>
 </template>
 
 <script>
 import Detail from "@/views/theFog/order/Detail";
+
 export default {
   components: {
     Detail,
   },
   name: "Shopping",
-  data(){
+  data() {
     return {
-      orderDetailProps:{},
-      orderDetailDw:false,
-      orderId:'',
+      orderDetailProps: {},
+      orderDetailDw: false,
+      orderId: '',
       orderDetail: [],
-      search:'',
-      detailType:1,
+      search: '',
+      detailType: 1,
     }
   },
   props: {
     shopRoomId: Number,
   },
   methods: {
-    addDetail(){
-      this.orderDetailDw=true;
-      this.orderDetailProps={};
-      this.detailType=1;
+    addDetail() {
+      this.orderDetailDw = true;
+      this.orderDetailProps = null;
+      this.detailType = 1;
 
     },
-    editDeatil(detail){
-      this.orderDetailDw=true;
-      this.orderDetailProps=detail;
-      this.detailType=2;
+    editDetail(detail) {
+      this.orderDetailDw = true;
+      this.orderDetailProps = detail;
+      this.detailType = 2;
+    },
+    delDetail(detail) {
+      let _this = this;
+      this.$confirm('是否确认删除该条费用？')
+          .then(async _ => {
+            try {
+              await _this.$axios.get(_this.$baseUrl + '/thefog/order/delOrderDetail', {
+                params: {
+                  id: detail.id,
+                }
+              })
+              await _this.doRefresh();
+              _this.utils.showSuccessTip(_this, '删除成功');
+
+            } catch (e) {
+              _this.utils.showErrorTip(_this, '费用删除异常，异常原因：' + e);
+              _this.doRefresh();
+              return;
+            }
+          })
+          .catch(_ => {
+          });
     },
     detailClose(done) {
+      let _this = this;
       this.$confirm('是否还有未保存的工作?确定关闭吗？')
           .then(_ => {
-            this.doRefresh();
+            _this.doRefresh();
             done();
           })
-          .catch(_ => {});
-      },
-    doRefresh(){
-      alert('刷新');
+          .catch(_ => {
+          });
     },
-    formatDate(date,format){
-      return this.$parent.$parent.formatDate(date,format);
+    doRefresh: async function () {
+      let _this = this;
+      try {
+        _this.orderDetail = await _this.$axios.get(_this.$baseUrl + '/thefog/order/getOrderDetailById', {
+          params: {
+            orderId: _this.orderId,
+          }
+        })
+      } catch (e) {
+        _this.utils.showErrorTip(_this, '房间订单信息获取异常，异常原因：' + e);
+        throw e;
+      }
+    },
+    formatDate(date, format) {
+      return this.$parent.$parent.formatDate(date, format);
     }
   },
-  created() {
+  created: async function () {
     debugger;
-    alert('shopping的桌号为'+this.shopRoomId);
-    alert('根据桌号查找orderId，测试为123');
-    this.orderId=123;
-    this.orderDetail=[{
-      id:1,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品1',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:2,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品2',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:3,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品3',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:4,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品4',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:5,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品5',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, ];
-    this.paidData=[{
-      id:6,
-      type:1,
-      flag:1,
-      amount:15,
-      orderId:20210524,
-      remark:'已支付',
-    }];
+    let _this = this;
+    try {
+      let roomData = await _this.$axios.get(_this.$baseUrl + '/thefog/room/findRoom', {
+        params: {
+          id: _this.shopRoomId,
+        }
+      })
+      if (!roomData || null == roomData.orderId) {
+        _this.utils.showErrorTip(_this, '未查询到房间的订单信息，请刷新后重试！');
+        this.$parent.$parent._data.shopVisible = false;
+        return;
+      }
+      _this.orderId = roomData.orderId;
+      await _this.doRefresh();
+
+    } catch (e) {
+      _this.utils.showErrorTip(_this, '房间订单信息异常，异常原因：' + e);
+      this.$parent.$parent._data.shopVisible = false;
+      return;
+    }
   }
 }
 </script>
@@ -226,10 +222,12 @@ export default {
 .demo-table-expand {
   font-size: 0;
 }
+
 .demo-table-expand label {
   width: 90px;
   color: #99a9bf;
 }
+
 .demo-table-expand .el-form-item {
   margin-right: 0;
   margin-bottom: 0;
