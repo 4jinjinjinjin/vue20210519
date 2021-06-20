@@ -38,7 +38,7 @@
       </el-table-column>
       <el-table-column width="240" prop="phone" label="联系电话"  align="right" header-align="center">
       </el-table-column>
-      <el-table-column width="240" prop="opertime"  label="注册时间" align="center" header-align="center" sortable>
+      <el-table-column width="240" prop="opertime" :formatter="formatterOpertime" label="注册时间" align="center" header-align="center" sortable>
       </el-table-column>
       <el-table-column width="240" prop="balance" :formatter="formatterBalance" style="font-weight: bolder" label="余额" align="right" header-align="center" sortable>
       </el-table-column>
@@ -60,7 +60,7 @@
           <el-button
               size="mini"
               type="info"
-              @click="handleDelete(scope.$index, scope.row)">设置</el-button>
+              @click="editMember(scope.row)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -70,7 +70,11 @@
         <Add></Add>
       </el-dialog>
     </transition>
-
+    <transition name="el-zoom-in-center">
+      <el-dialog v-if="editVisible" title="编辑会员信息" width="600px"  :visible.sync="editVisible" :before-close="addClose"  >
+        <Add :editMemberData="editMemberData"></Add>
+      </el-dialog>
+    </transition>
 
     <transition name="el-zoom-in-center">
       <el-dialog v-if="chargeVisible" title="会员充值" :visible.sync="chargeVisible" :before-close="chargeClose"  >
@@ -81,6 +85,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import Add from "@/views/theFog/member/Add";
 import Charge from "@/views/theFog/member/Charge";
 export default {
@@ -93,19 +98,13 @@ export default {
     formatterBalance:function (row, column, cellValue, index){
       return Number(cellValue).toFixed(2);
     },
-    doRefresh:function () {
-      alert('刷新内容')
-      const item = {
-        id:111,
-        name:'Adds',
-        sex:1,//1 男，2 女
-        phone: 15258610732,
-        address: '上海市普陀区金沙江路 1518 弄',
-        remark:'测试备注',
-        opertime:'2021-05-30',
-        balance:500.00,
-      };
-      this.memberData=new Array(item);
+    doRefresh:async function () {
+      let _this=this;
+      let data = await _this.$axios.get(_this.$baseUrl + '/thefog/member/findAllMember')
+      this.memberData = data;
+    },
+    formatterOpertime: function (row, column, cellValue, index) {
+      return moment(cellValue).format('YYYY-MM-DD');
     },
 
     addClose(done) {
@@ -114,6 +113,8 @@ export default {
           .then(_ => {
             _this.doRefresh();
             _this.addVisible=false;
+            _this.editMemberData={};
+            _this.editVisible=false;
             done();
           })
           .catch(_ => {});
@@ -122,6 +123,11 @@ export default {
       debugger;
       this.chargeMemberData=rowData;
       this.chargeVisible=true;
+    },
+    editMember(rowData){
+      debugger;
+      this.editMemberData=rowData;
+      this.editVisible=true;
     },
     chargeClose(done) {
       let _this= this;
@@ -135,36 +141,14 @@ export default {
     },
   },
   created() {
-    const item = {
-      id:111,
-      name:'Adds',
-      sex:1,//1 男，2 女
-      phone: 15258610732,
-      address: '上海市普陀区金沙江路 1518 弄',
-      remark:'测试备注',
-      opertime:'2021-05-30',
-      balance:500.00,
-    };
-    this.memberData.push(item);
-
-    for (let i=0;i<20;i++){
-      const item = {
-        id:i+1,
-        name:'测试'+i,
-        sex:i%2+1,//1 男，2 女
-        phone: 15258610732,
-        address: '上海市普陀区金沙江路 1518 弄',
-        remark:'测试备注'+i,
-        opertime:'2021-05-30',
-        balance:500.00+i,
-      };
-      this.memberData.push(item);
-    }
+    this.doRefresh();
   },
   data() {
     return {
       search:'',
       addVisible:false,//新增界面
+      editVisible:false,//编辑界面
+      editMemberData:{},
       chargeMemberData:{},
       chargeVisible:false,//充值界面
 

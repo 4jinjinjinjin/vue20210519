@@ -183,20 +183,25 @@ export default {
         cancelButtonText: '取消',
         // type: 'warning'
       }).then(async () => {
-        _this.mask=true;
-        let data = await _this.$axios.get(_this.$baseUrl + '/thefog/room/creatOrder', {
-          params: {
-            roomId: roomId,
-            empId: sessionStorage.getItem('userId')
-          }
-        })
-        await _this.utils.showSuccessTip(_this,'接客成功！');
-        await _this.refreshRoomDetail(roomId);
-        await _this.goShopping(roomId);
-        _this.mask=false;
+        try{
+          _this.mask=true;
+          let data = await _this.$axios.get(_this.$baseUrl + '/thefog/room/creatOrder', {
+            params: {
+              roomId: roomId,
+              empId: sessionStorage.getItem('userId')
+            }
+          })
+          await _this.utils.showSuccessTip(_this,'接客成功！');
+          await _this.refreshRoomDetail(roomId);
+          await _this.goShopping(roomId);
+          _this.mask=false;
+        }catch (e) {
+          _this.mask=false;
+          _this.utils.showErrorTip(_this,'接客失败，失败原因：'+e.message||e)
+        }
       }).catch((e) => {
         _this.mask=false;
-        _this.utils.showErrorTip(_this,'接客失败，失败原因：'+e.message||e)
+        _this.utils.showWarningTip(_this,'取消接客')
       });
     },
     cleanDwData(){

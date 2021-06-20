@@ -42,7 +42,7 @@
         </div>
         <div style="display: flex;margin-top: 5px">
           <span style="margin-left:10px; width:170px;font-size:xx-large;font-weight: bolder;color: #535353">充值方式：</span>
-          <el-select style="width:160px;" v-model="payType" placeholder="请选择">
+          <el-select style="width:160px;" v-model="pageData.payType" placeholder="请选择">
             <el-option
                 v-for="item in payTypeList"
                 :key="item.value"
@@ -58,7 +58,7 @@
               style="width: 460px"
               :autosize="{ minRows: 2, maxRows: 4}"
               placeholder="请输入内容"
-              v-model="payRemark">
+              v-model="pageData.payRemark">
           </el-input>
         </div>
         <div style='position: absolute;bottom: 20px;right:20px'>
@@ -80,19 +80,11 @@ export default {
   },
   data() {
     return {
-      payRemark: '',
-      payData: {
-        type: '2',//会员往来
-        flag: '',
-        amount: 0.00,
-        orderId: '',
-        payMember: -1,
-        remark: '',
-      },
       pageData: {
+        payRemark: '',
         wantPayAmount: 0.00,
+        payType: 1,
       },
-      payType: 1,
       payTypeList: [
         {value: 1, text: '现金'},
         {value: 2, text: '支付宝'},
@@ -114,13 +106,26 @@ export default {
     doPay(){
       let _this=this;
       this.$confirm('确认是否金额已经入账？')
-          .then(_ => {
-            _this.$message({
-              message: '充值成功！',
-              type: 'success'
-            });
-            this.$parent.$parent._data.chargeVisible=false;
-            this.$parent.$parent._data.search=_this.chargeMemberData.name;
+          .then(async _ => {
+
+            try {
+              await _this.$axios.get(_this.$baseUrl + '/thefog/pay/addMemBalance', {
+                params: {
+                  flag: _this.pageData.payType,
+                  amount:_this.pageData.wantPayAmount,
+                  memberId:_this.chargeMemberData.id,
+                  remark: _this.pageData.payRemark,
+                  operator:sessionStorage.getItem('userId')
+                }
+              })
+              _this.utils.showSuccessTip(_this, '充值成功');
+              this.$parent.$parent._data.chargeVisible=false;
+              this.$parent.$parent._data.search=_this.chargeMemberData.name;
+              this.$parent.$parent.doRefresh();
+
+            } catch (e) {
+              _this.utils.showErrorTip(_this, '充值异常，异常原因：' + e);
+            }
           })
           .catch(_ => {
 

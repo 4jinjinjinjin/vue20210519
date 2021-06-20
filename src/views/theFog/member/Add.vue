@@ -20,7 +20,7 @@
         <el-input v-model="member.remark"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onSubmit('addMember')">立即创建</el-button>
+        <el-button type="primary" @click="editMemberData?editSubmit('addMember'):onSubmit('addMember')">{{editMemberData?'保存':'立即创建'}}</el-button>
         <el-button @click="cancleClick">取消</el-button>
       </el-form-item>
     </el-form>
@@ -31,7 +31,7 @@
 export default {
   name: "Add",
   props: {
-    payRoomId: Number,
+    editMemberData: Object,
   },
 
   data() {
@@ -63,19 +63,58 @@ export default {
     },
     onSubmit(formName) {
       let _this=this;
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
           debugger;
-          //开始新增
-          this.$message({
-            message: '新增成功！',
-            type: 'success'
-          });
-          this.$parent.$parent._data.addVisible=false;
-          this.$parent.$parent._data.search=_this.member.name;
 
+          debugger;
+          try {
+            _this.member.operator=sessionStorage.getItem('userId');
+            await _this.$axios.get(_this.$baseUrl + '/thefog/member/creatMember',{
+              params:{
+                memberJson:JSON.stringify(_this.member),
+              }
+            })
+            _this.utils.showSuccessTip(_this, '新增成功!');
+            this.$parent.$parent._data.addVisible=false;
+            this.$parent.$parent.doRefresh();
+            this.$parent.$parent._data.search=_this.member.name;
+          }catch (e) {
+            _this.utils.showErrorTip(_this, '新增会员异常，异常原因：'+e);
+          }
         }
       });
+    },
+
+    editSubmit(formName) {
+      let _this=this;
+      this.$refs[formName].validate(async (valid) => {
+        if (valid) {
+          debugger;
+
+          debugger;
+          try {
+            _this.member.operator=sessionStorage.getItem('userId');
+            await _this.$axios.get(_this.$baseUrl + '/thefog/member/creatMember',{
+              params:{
+                memberJson:JSON.stringify(_this.member),
+              }
+            })
+            _this.utils.showSuccessTip(_this, '修改成功!');
+            this.$parent.$parent._data.editVisible=false;
+            this.$parent.$parent._data.editMemberData= {};
+            this.$parent.$parent.doRefresh();
+            this.$parent.$parent._data.search=_this.member.name;
+          }catch (e) {
+            _this.utils.showErrorTip(_this, '修改会员信息异常，异常原因：'+e);
+          }
+        }
+      });
+    }
+  },
+  created() {
+    if (this.editMemberData){
+      this.member = Object.assign({},this.editMemberData);
     }
   }
 }
