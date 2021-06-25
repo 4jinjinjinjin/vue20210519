@@ -7,13 +7,16 @@
       </el-input>
 
       <el-button-group>
-        <el-button type="primary" icon="el-icon-plus" style="margin-left: 5px" @click="addVisible=true">新增会员</el-button>
+        <el-button type="primary" v-if="dealType!==1" icon="el-icon-plus" style="margin-left: 5px" @click="addVisible=true">新增会员</el-button>
+        <el-button type="primary" v-if="dealType===1" icon="el-icon-plus" style="margin-left: 5px" @click="chooseMember()">确认选择</el-button>
       </el-button-group>
 
     </div>
 
-    <el-table :data="memberData.filter(data => !search || new String(data.id).includes(search) || data.name.toLowerCase().includes(search.toLowerCase()))"
-              :border=true style="margin-top: 5px;" height="800px">
+    <el-table  ref="memberTable"
+               highlight-current-row :data="memberData.filter(data => !search || new String(data.id).includes(search) || data.name.toLowerCase().includes(search.toLowerCase()))"
+              :border=true style="margin-top: 5px;" :height="dealType!==1?'800px':'500px'"
+               @current-change="handleCurrentChange">
 <!--      <el-table-column-->
 <!--          type="index"-->
 <!--          width="50">-->
@@ -38,7 +41,7 @@
       </el-table-column>
       <el-table-column width="240" prop="phone" label="联系电话"  align="right" header-align="center">
       </el-table-column>
-      <el-table-column width="240" prop="opertime" :formatter="formatterOpertime" label="注册时间" align="center" header-align="center" sortable>
+      <el-table-column width="240" v-if="dealType!==1" prop="opertime" :formatter="formatterOpertime" label="注册时间" align="center" header-align="center" sortable>
       </el-table-column>
       <el-table-column width="240" prop="balance" :formatter="formatterBalance" style="font-weight: bolder" label="余额" align="right" header-align="center" sortable>
       </el-table-column>
@@ -59,7 +62,7 @@
               @click="handleEdit(scope.$index, scope.row)">消费记录</el-button>
           <el-button
               size="mini"
-              type="info"
+              type="info" v-if="dealType!==1"
               @click="editMember(scope.row)">编辑</el-button>
         </template>
       </el-table-column>
@@ -77,7 +80,7 @@
     </transition>
 
     <transition name="el-zoom-in-center">
-      <el-dialog v-if="chargeVisible" title="会员充值" :visible.sync="chargeVisible" :before-close="chargeClose"  >
+      <el-dialog  :modal="false" v-if="chargeVisible" title="会员充值" :visible.sync="chargeVisible" :before-close="chargeClose"  >
         <Charge :chargeMemberData="chargeMemberData"></Charge>
       </el-dialog>
     </transition>
@@ -93,8 +96,21 @@ export default {
     Add,
     Charge,
   },
+  // 接受父组件的值
+  props: {
+    dealType: Number,
+  },
   name: "Member",
   methods: {
+    handleCurrentChange(val) {
+      this.currentRow = val;
+    },
+    chooseMember:function (){
+      debugger;
+      const _selectData = this.currentRow;
+      console.log(_selectData);
+      this.$parent.$parent.chooseClose(_selectData);
+    },
     formatterBalance:function (row, column, cellValue, index){
       return Number(cellValue).toFixed(2);
     },
@@ -151,7 +167,7 @@ export default {
       editMemberData:{},
       chargeMemberData:{},
       chargeVisible:false,//充值界面
-
+      currentRow:{},
       memberData: [],
       nowWeek: '',
       nowDate: '',

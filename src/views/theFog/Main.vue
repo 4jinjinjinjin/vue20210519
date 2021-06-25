@@ -36,7 +36,7 @@
             </el-row>
             <el-row>
               <el-tooltip class="item" effect="dark" content="结账" placement="right">
-                <el-button type="primary" @click="goPay(o.id)" icon="el-icon-s-finance" size="small " v-if="o.isUse=='1'?true:false" plain
+                <el-button type="primary" @click="goPay(o.orderId,o.id)" icon="el-icon-s-finance" size="small " v-if="o.isUse=='1'?true:false" plain
                            circle></el-button>
               </el-tooltip>
             </el-row>
@@ -56,7 +56,7 @@
             <br>
             <time class="time"> {{ getDiffTime(o.startTime, new Date()) }}</time>
 
-            <el-button type="text" class="button" @click="o.isUse=='1'?goPay(o.id):creatOrder(o.id,o.name) ">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
+            <el-button type="text" class="button" @click="o.isUse=='1'?goPay(o.orderId,o.id):creatOrder(o.id,o.name) ">{{ o.isUse=='1'?'结账':'接客' }}</el-button>
           </div>
         </div>
 
@@ -122,7 +122,7 @@
     </el-drawer>
     <transition name="el-zoom-in-center">
       <el-dialog v-if="payVisible" title="付款界面" :visible.sync="payVisible" :before-close="payClose" :fullscreen="true" >
-        <Pay :payRoomId="payRoomId"></Pay>
+        <Pay :payOrderId="payOrderId" :payRoomId="payRoomId"></Pay>
       </el-dialog>
     </transition>
     <transition name="el-zoom-in-center">
@@ -148,6 +148,7 @@ export default {
     return {
       shopRoomId:'',
       shopVisible:false,
+      payOrderId:'',
       payRoomId:'',
       roomDatas: [],
       roomDetailDw: false,
@@ -165,11 +166,20 @@ export default {
     };
   },
   methods: {
-    payClose() {
+    payClose(payOrderId,payRoomId) {
       let _this= this;
 
       _this.refreshRoomDetail();
       _this.payVisible=false;
+      if (payOrderId){
+        this.$confirm('订单未结算完成，是否继续结算？')
+            .then(_ => {
+              _this.goPay(payOrderId,payRoomId);
+            })
+            .catch(_ => {
+
+            });
+      }
     },
     shopClose() {
       let _this= this;
@@ -209,9 +219,11 @@ export default {
       this.roomDetail={};
       this.roomDetailType=null;//1 为详情，2为修改，3为新增
     },
-    goPay(roomId){
+    goPay(payOrderId,payRoomId){
+      debugger;
       this.payVisible=true;
-      this.payRoomId=roomId;
+      this.payOrderId=payOrderId;
+      this.payRoomId=payRoomId;
     },
     goShopping(roomId){
       this.shopVisible=true;

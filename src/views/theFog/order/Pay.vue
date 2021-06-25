@@ -156,7 +156,8 @@
             <el-button slot="append" icon="el-icon-search"></el-button>
           </el-input>
           <el-link  type="success" v-if="memberData.balance" style="margin-left: 7px;margin-top: 22px; width:80px;font-size:smaller;">
-            <span @click="gotoMemberTopUp">{{'余额：'+memberData.balance+'元'}}</span>
+            <span>{{'余额：'+memberData.balance+'元'}}</span>
+<!--            <span @click="gotoMemberTopUp">{{'余额：'+memberData.balance+'元'}}</span>-->
           </el-link>
         </div>
         <div style="display: flex;margin-top: 5px">
@@ -170,24 +171,35 @@
           </el-input>
         </div>
         <div style='position: absolute;bottom: 20px;right:20px'>
+          <el-button type="danger"  @click="doOrder">送客</el-button>
           <el-button type="primary"  @click="doPay">确认结算</el-button>
           <el-button type="info" @click="payClose">退出</el-button>
         </div>
       </div>
     </div>
 
+    <transition name="el-zoom-in-center">
+      <el-dialog width="1200px" :modal="false" v-if="chooseVisible" :visible.sync="chooseVisible"  title="请选择会员支付"  :before-close="chooseClose">
+        <Member  :dealType="choose"></Member>
+      </el-dialog>
+    </transition>
+
   </div>
 </template>
 
 <script>
+import Member from "@/views/theFog/Member";
 export default {
   name: "Pay",
+  components: {Member},
   // 接受父组件的值
   props: {
+    payOrderId: Number,
     payRoomId: Number,
   },
   data(){
     return {
+      choose:1,
       memberIf:false,
       payRemark:'',
       model1:'1',
@@ -207,31 +219,66 @@ export default {
         paidAmount:0.00,
         unpaidAmount:0.00,
       },
-      payData:{
-        type:'1',
-        flag:'',
-        amount: 0.00,
-        orderId:'',
-        payMember:-1,
-        remark:'',
-      },
       memberData:{
       },
       orderDetail: [],
-      roomData: {},
-      orderData: {id:20210524},
       paidData:[],
-      roomDetail:{id: 1, name: '一号桌', remark: '测试在用', isUse: '1', startTime: new Date('2021-05-12 00:14:55')},
+      roomDetail:{},
+
+      chooseVisible:false,
+
     };
 
   },
   methods:{
-    doPay(){
+    doPay:async function(){
       let _this=this;
+      if (_this.pageData.wantPayAmount==0){
+
+        _this.utils.showWarningTip(_this, '支付金额不可为0！');
+        return ;
+      }
+      if (_this.payType=='4'&&!_this.memberData.id){
+        _this.utils.showWarningTip(_this, '请先选择会员信息！');
+        return ;
+      }
       this.$confirm('确认是否金额已经入账？')
-          .then(_ => {
+          .then(async _ => {
+            try{
+              debugger;
+              await _this.$axios.get(_this.$baseUrl + '/thefog/pay/doPay', {
+                params: {
+                  flag:_this.payType,
+                  amount: _this.pageData.wantPayAmount,
+                  orderId:_this.payOrderId,
+                  memberId:_this.memberData.id||'-1',
+                  remark:_this.payRemark,
+                  operator:sessionStorage.getItem('userId')
+                }
+              })
+              _this.utils.showSuccessTip(_this, '支付成功！');
+              this.$parent.$parent.payClose(_this.pageData.unpaidAmount-_this.pageData.wantPayAmount>0?_this.payOrderId:'',_this.pageData.unpaidAmount-_this.pageData.wantPayAmount>0?_this.payRoomId:'');
+            }catch (e) {
+              _this.utils.showWarningTip(_this, '结算加载失败！请重新进入改界面。'+e);
+            }
+          })
+          .catch(_ => {
+
+          });
+    },
+    doOrder(){
+      let _this=this;
+      this.$confirm('确认是否送客？'+(_this.pageData.unpaidAmount>0?'客户还有未支付['+_this.pageData.unpaidAmount+']金额！':''))
+          .then(async _ => {
+
+            await _this.$axios.get(_this.$baseUrl + '/thefog/pay/say886', {
+              params: {
+                orderId:_this.payOrderId,
+                operator:sessionStorage.getItem('userId')
+              }
+            })
             _this.$message({
-              message: '结算成功！',
+              message: '恭送客人，请记得下次再来哦！',
               type: 'success'
             });
             this.$parent.$parent.payClose();
@@ -240,23 +287,18 @@ export default {
 
           });
     },
-    gotoMemberTopUp(){
-      alert('开始充值');
-
-      this.memberData={
-        id:123,
-        name:'测试会员',
-        balance:150.00,
-      };
-    },
     chooseMember(){
-      alert('选择会员信息');
-      this.memberData={
-        id:123,
-        name:'测试会员',
-        balance:50.00,
-      };
-      this.inputAmountChange();
+      let _this = this;
+      _this.chooseVisible=true;
+    },
+    chooseClose(memberData){
+      this.chooseVisible=false;
+      if (memberData.id){
+        this.memberData=memberData;
+        this.inputAmountChange();
+      }else {
+        this.utils.showWarningTip('未选择会员信息！')
+      }
     },
     payTypeChange(){
       this.memberData={};
@@ -302,84 +344,49 @@ export default {
     getDiffTime(startTime, endTime){
       return this.$parent.$parent.getDiffTime(startTime,endTime);
     },
+    reflash : async function (){
+
+      let _this=this;
+      try{
+        this.orderDetail=await _this.$axios.get(_this.$baseUrl + '/thefog/order/getOrderDetailById', {
+          params: {
+            orderId: _this.payOrderId,
+          }
+        })
+        this.roomDetail=await _this.$axios.get(_this.$baseUrl + '/thefog/room/findRoom', {
+          params: {
+            id: _this.payRoomId,
+          }
+        })
+
+        this.paidData=await _this.$axios.get(_this.$baseUrl + '/thefog/pay/getPayByOrderId', {
+          params: {
+            orderId: _this.payOrderId,
+          }
+        })
+
+        let orderAmount=0.00;
+        for (let index=0;index<this.orderDetail.length; index++){
+          orderAmount+=this.orderDetail[index].realAmount;
+        }
+        this.pageData.orderAmount=orderAmount.toFixed(2);
+
+        let payAmount=0.00;
+        for (let index=0;index<this.paidData.length; index++){
+          payAmount+=this.paidData[index].amount;
+        }
+        this.pageData.paidAmount=payAmount.toFixed(2);
+
+        this.pageData.unpaidAmount=(orderAmount-payAmount).toFixed(2);
+        this.pageData.wantPayAmount=this.pageData.unpaidAmount;
+      }catch (e) {
+        _this.utils.showWarningTip(_this, '结算加载失败！请重新进入改界面。'+e);
+      }
+    },
   },
-  created() {
+  created :async function() {
     debugger;
-    alert('结账的桌号为'+this.payRoomId);
-    this.orderDetail=[{
-      id:1,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:1,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:1,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:1,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, {
-      id:1,
-      orderId:123,
-      goodsId:789,
-      goodsName:'测试商品',
-      goodsAmount:20.50,
-      realAmount:18.50,
-      operator:'测试',
-      opertime:new Date('2021-05-12 00:14:55'),
-      remark:'优惠2元',
-    }, ];
-    this.paidData=[{
-      id:1,
-      type:1,
-      flag:1,
-      amount:15,
-      orderId:20210524,
-      remark:'已支付',
-    }];
-
-    let orderAmount=0.00;
-    for (let index=0;index<this.orderDetail.length; index++){
-      orderAmount+=this.orderDetail[index].realAmount;
-    }
-    this.pageData.orderAmount=orderAmount.toFixed(2);
-
-    let payAmount=0.00;
-    for (let index=0;index<this.paidData.length; index++){
-      payAmount+=this.paidData[index].amount;
-    }
-    this.pageData.paidAmount=payAmount.toFixed(2);
-
-    this.pageData.unpaidAmount=(orderAmount-payAmount).toFixed(2);
-    this.pageData.wantPayAmount=this.pageData.unpaidAmount;
+    this.reflash();
   }
 }
 </script>
