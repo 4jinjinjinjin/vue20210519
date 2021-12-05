@@ -10,13 +10,21 @@
         </el-form-item>
       </div>
       <el-form-item label="商品编码" prop="goodsId">
-        <el-input v-model.number="orderDetail.goodsId"></el-input>
+<!--        <el-input v-model.number="orderDetail.goodsId" disabled></el-input>-->
+        <el-input @click.native="chooseGoods" :readonly=true style="width:220px;margin-left: 5px" placeholder="请选择商品信息"
+                  v-model.number="orderDetail.goodsId" :value="orderDetail.goodsId"></el-input>
       </el-form-item>
       <el-form-item label="商品名称"  prop="goodsName">
-        <el-input v-model="orderDetail.goodsName"></el-input>
+        <el-input v-model="orderDetail.goodsName" disabled></el-input>
+      </el-form-item>
+      <el-form-item label="商品单价"  prop="goodsPrice">
+        <el-input  v-model="orderDetail.goodsPrice" disabled></el-input>
+      </el-form-item>
+      <el-form-item label="数量"  prop="goodsNum" >
+        <el-input @blur="inputGoodsNumBlur" v-model="orderDetail.goodsNum"></el-input>
       </el-form-item>
       <el-form-item label="商品金额"  prop="goodsAmount">
-        <el-input @blur="inputGoodsAmountBlur" v-model="orderDetail.goodsAmount"></el-input>
+        <el-input @blur="inputGoodsAmountBlur" v-model="orderDetail.goodsAmount" disabled></el-input>
       </el-form-item>
       <el-form-item label="实算金额"  prop="realAmount">
         <el-input @blur="inputRealAmountBlur" v-model="orderDetail.realAmount"></el-input>
@@ -29,11 +37,22 @@
         <el-button @click="cancleClick">取消</el-button>
       </el-form-item>
     </el-form>
+
+
+    <transition name="el-zoom-in-center">
+      <el-dialog width="60%" :modal="false" v-if="chooseVisible" :visible.sync="chooseVisible"  title="请选择商品信息"  :before-close="chooseClose">
+        <GoodsChoose ></GoodsChoose>
+      </el-dialog>
+    </transition>
+
   </div>
 </template>
 
 <script>
+import GoodsChoose from "@/views/theFog/GoodsChoose";
+
 export default {
+  components: {GoodsChoose},
   name: "Detail",
   props: {
     orderId: Number,
@@ -47,11 +66,16 @@ export default {
       orderDetail: {
         id: '',
         orderId: '',
-        goodsId: 1001,
+        goodsId: '',
         goodsName: '',
         goodsAmount: '',
         realAmount: '',
         remark: '',
+        goodsPrice:'',
+        goodsNum:'1',
+      },
+
+      goodsData:{
       },
       rules: {
         goodsId: [
@@ -66,7 +90,9 @@ export default {
         realAmount: [
           {required: true, message: '请输入实算金额', trigger: 'blur'},
         ],
-      }
+      },
+      chooseVisible:false,
+
     }
   },
   created() {
@@ -77,18 +103,48 @@ export default {
     }
   },
   methods: {
+    chooseGoods(){
+      let _this = this;
+      _this.chooseVisible=true;
+    },
+
+    chooseClose(goodsData){
+      this.chooseVisible=false;
+      if (goodsData.goodsId){
+        this.goodsData=goodsData;
+        this.orderDetail.goodsId=goodsData.goodsId
+        this.orderDetail.goodsPrice=goodsData.goodsPrice
+        // this.orderDetail.goodsNum=goodsData.goodsNum
+        this.orderDetail.goodsName=goodsData.goodsName
+        this.inputGoodsNumBlur();
+      }else {
+        this.utils.showWarningTip('未选择商品信息！')
+      }
+    },
     inputGoodsAmountBlur(){
-      let goodsAmount = Number(this.orderDetail.goodsAmount.replace(/[^\d.]/g, '')||0);
-      let realAmount = Number(this.orderDetail.realAmount.replace(/[^\d.]/g, '')||0);
+      let goodsAmount = Number(String(this.orderDetail.goodsAmount).replace(/[^\d.]/g, '')||0);
+      let realAmount = Number(String(this.orderDetail.realAmount).replace(/[^\d.]/g, '')||0);
 
       if (realAmount==0||realAmount>goodsAmount){
         this.orderDetail.realAmount=goodsAmount.toFixed(2);
       }
       this.orderDetail.goodsAmount=goodsAmount.toFixed(2);
     },
+    inputGoodsNumBlur(){
+      debugger;
+
+      let goodsPrice = Number(String(this.orderDetail.goodsPrice).replace(/[^\d.]/g, '')||0);
+      let goodsNum = Number(String(this.orderDetail.goodsNum).replace(/[^\d.]/g, '')||0).toFixed(0);
+      this.orderDetail.goodsNum=goodsNum;
+
+      let goodsAmount = (goodsPrice*goodsNum).toFixed(2);
+      this.orderDetail.goodsAmount=goodsAmount;
+      this.orderDetail.realAmount=goodsAmount;
+    },
+
     inputRealAmountBlur(){
-      let goodsAmount = Number(this.orderDetail.goodsAmount.replace(/[^\d.]/g, '')||0);
-      let realAmount = Number(this.orderDetail.realAmount.replace(/[^\d.]/g, '')||0);
+      let goodsAmount = Number(String(this.orderDetail.goodsAmount).replace(/[^\d.]/g, '')||0);
+      let realAmount = Number(String(this.orderDetail.realAmount).replace(/[^\d.]/g, '')||0);
       if (goodsAmount==0){
         realAmount = 0;
       }else {

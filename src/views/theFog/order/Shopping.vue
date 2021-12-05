@@ -63,6 +63,20 @@
             width="350">
         </el-table-column>
         <el-table-column
+            prop="goodsPrice"
+            header-align="center"
+            label="商品单价"
+            align="right"
+            width="120">
+        </el-table-column>
+        <el-table-column
+            prop="goodsNum"
+            header-align="center"
+            label="数量"
+            align="right"
+            width="60">
+        </el-table-column>
+        <el-table-column
             prop="goodsAmount"
             header-align="center"
             label="商品金额"
