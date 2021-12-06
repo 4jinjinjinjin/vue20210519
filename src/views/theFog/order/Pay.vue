@@ -138,7 +138,7 @@
           <div style="width: 160px">
             <el-input label="订单总额"  class="inputAmount" @blur="inputAmountChange" v-model="pageData.wantPayAmount" ></el-input>
           </div>
-          <span  style="margin-left: 5px; width:30px;font-size:xx-large;font-weight: bolder;color: #d44a4a">元</span>
+          <span  style="margin-left: 5px; width:75px;font-size:xx-large;font-weight: bolder;color: #d44a4a">澳币</span>
           <span  style="margin-left: 7px;margin-top: 22px; width:200px;font-size:smaller;">(金额范围为0~{{pageData.unpaidAmount}}之间)</span>
         </div>
         <div style="display: flex;margin-top: 5px">
@@ -156,8 +156,8 @@
             <el-button slot="append" icon="el-icon-search"></el-button>
           </el-input>
           <el-link  type="success" v-if="memberData.balance" style="margin-left: 7px;margin-top: 22px; width:80px;font-size:smaller;">
-            <span>{{'余额：'+memberData.balance+'元'}}</span>
-<!--            <span @click="gotoMemberTopUp">{{'余额：'+memberData.balance+'元'}}</span>-->
+            <span>{{'余额：'+memberData.balance+'澳币'}}</span>
+<!--            <span @click="gotoMemberTopUp">{{'余额：'+memberData.balance+'澳币'}}</span>-->
           </el-link>
         </div>
         <div style="display: flex;margin-top: 5px">

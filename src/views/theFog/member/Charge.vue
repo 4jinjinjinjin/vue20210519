@@ -38,7 +38,7 @@
           <div style="width: 160px">
             <el-input class="inputAmount" @blur="inputAmountChange" v-model="pageData.wantPayAmount"></el-input>
           </div>
-          <span style="margin-left: 5px; width:30px;font-size:xx-large;font-weight: bolder;color: #d44a4a">元</span>
+          <span style="margin-left: 5px; width:75px;font-size:xx-large;font-weight: bolder;color: #d44a4a">澳币</span>
         </div>
         <div style="display: flex;margin-top: 5px">
           <span style="margin-left:10px; width:170px;font-size:xx-large;font-weight: bolder;color: #535353">充值方式：</span>

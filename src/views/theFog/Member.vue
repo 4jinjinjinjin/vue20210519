@@ -55,11 +55,11 @@
           <el-button
               size="mini"
               type="primary"
-              @click="handleEdit(scope.$index, scope.row)">充值记录</el-button>
+              @click="showToUp( scope.row)">充值记录</el-button>
           <el-button
               size="mini"
               type="warning"
-              @click="handleEdit(scope.$index, scope.row)">消费记录</el-button>
+              @click="showPayDetail(scope.row)">消费记录</el-button>
           <el-button
               size="mini"
               type="info" v-if="dealType!==1"
@@ -84,6 +84,61 @@
         <Charge :chargeMemberData="chargeMemberData"></Charge>
       </el-dialog>
     </transition>
+    <transition name="el-zoom-in-center">
+      <el-dialog  :modal="false" v-if="topUpVisible" title="充值记录" :visible.sync="topUpVisible" >
+<!--        :before-close="chargeClose"  >-->
+        <el-table  ref="topUpTable"
+                   highlight-current-row :data="topUpData"
+                   :border=true style="margin-top: 5px;" :height="'500px'"
+                   @current-change="handleCurrentChange"
+                   show-summary>
+          <el-table-column prop="id" label="充值编号" width="140" align="center" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="240" prop="flag" :formatter="formatterFlag"
+                           style="font-weight: bolder" label="充值方式" align="center" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="240" prop="amount" :formatter="formatterBalance" style="font-weight: bolder" label="充值余额" align="right" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="240" prop="opertime" :formatter="formatterOpertime" label="充值时间" align="center" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="320" prop="remark"  style="font-weight: bolder" label="充值备注" align="left" header-align="center" sortable>
+          </el-table-column>
+
+          <el-table-column width="240" prop="opername" label="充值人员"  align="center" header-align="center">
+          </el-table-column>
+
+        </el-table>
+
+      </el-dialog>
+    </transition>
+    <transition name="el-zoom-in-center">
+      <el-dialog  :modal="false" v-if="payDeatilVisible" title="消费记录" :visible.sync="payDeatilVisible" >
+        <!--        :before-close="chargeClose"  >-->
+        <el-table  ref="payDetailTable"
+                   highlight-current-row :data="payDetailData"
+                   :border=true style="margin-top: 5px;" :height="'500px'"
+                   @current-change="handleCurrentChange"
+                   show-summary>
+          <el-table-column prop="id" label="消费编号" width="140" align="center" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="240" prop="orderId"
+                           style="font-weight: bolder" label="订单号" align="center" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="240" prop="amount" :formatter="formatterBalance" style="font-weight: bolder" label="消费金额" align="right" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="240" prop="opertime" :formatter="formatterOpertime" label="消费时间" align="center" header-align="center" sortable>
+          </el-table-column>
+          <el-table-column width="320" prop="remark"  style="font-weight: bolder" label="消费备注" align="left" header-align="center" sortable>
+          </el-table-column>
+
+          <el-table-column width="240" prop="opername" label="操作人员"  align="center" header-align="center">
+          </el-table-column>
+
+        </el-table>
+
+      </el-dialog>
+    </transition>
+
   </div>
 </template>
 
@@ -114,6 +169,22 @@ export default {
     formatterBalance:function (row, column, cellValue, index){
       return Number(cellValue).toFixed(2);
     },
+    formatterFlag:function (row, column, cellValue, index){
+
+      let k=[{value:1,text:'现金'},
+      {value:2,text:'支付宝'},
+      {value:3,text:'微信'},
+      {value:4,text:'会员支付'},
+      {value:5,text:'刷卡'},
+      {value:6,text:'转账'},
+      {value:7,text:'其他'}]
+      for (let i=0;i<k.length;i++){
+        if (k[i].value==cellValue){
+          return k[i].text;
+        }
+      }
+    },
+
     doRefresh:async function () {
       let _this=this;
       let data = await _this.$axios.get(_this.$baseUrl + '/thefog/member/findAllMember')
@@ -139,6 +210,38 @@ export default {
       debugger;
       this.chargeMemberData=rowData;
       this.chargeVisible=true;
+    },
+    showToUp :async function (rowData){
+      this.topUpData=[];
+
+      try{
+        debugger;
+        this.topUpData=await this.$axios.get(this.$baseUrl + '/thefog/member/findTopUpById', {
+          params: {
+            memberId:rowData.id
+          }
+        })
+        this.topUpVisible=true;
+        this.utils.showSuccessTip(this, '查询成功！');
+      }catch (e) {
+        this.utils.showWarningTip(this, '查询成功！失败原因：'+e);
+      }
+    },
+    showPayDetail :async function (rowData){
+      this.payDetailData=[];
+
+      try{
+        debugger;
+        this.payDetailData=await this.$axios.get(this.$baseUrl + '/thefog/member/findPayDetailById', {
+          params: {
+            memberId:rowData.id
+          }
+        })
+        this.payDeatilVisible=true;
+        this.utils.showSuccessTip(this, '查询成功！');
+      }catch (e) {
+        this.utils.showWarningTip(this, '查询成功！失败原因：'+e);
+      }
     },
     editMember(rowData){
       debugger;
@@ -167,8 +270,12 @@ export default {
       editMemberData:{},
       chargeMemberData:{},
       chargeVisible:false,//充值界面
+      topUpVisible:false,//充值记录
+      payDeatilVisible:false,
+      payDetailData:[],
       currentRow:{},
       memberData: [],
+      topUpData:[],
       nowWeek: '',
       nowDate: '',
       nowTime: '',
