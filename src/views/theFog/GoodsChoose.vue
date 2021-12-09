@@ -1,6 +1,14 @@
 <template>
   <div>
     <div style="display: flex">
+      <el-select style="width:160px;" @change="doRefresh" v-model="goodsCheck" placeholder="请选择">
+        <el-option
+            v-for="item in TypeList"
+            :key="item.value"
+            :label="item.text"
+            :value="item.value">
+        </el-option>
+      </el-select>
       <el-input  style="width:320px;margin-left: 5px" placeholder="请输入检索内容"
                  v-model="search" >
         <el-button @click="doRefresh" slot="append" icon="el-icon-refresh"></el-button>
@@ -19,6 +27,8 @@
       <el-table-column prop="id" label="商品编号"  align="center" header-align="center">
       </el-table-column>
 
+      <el-table-column width="240" prop="goodsType" :formatter="formatterType" label="商品类别"  align="center" header-align="center" sortable>
+      </el-table-column>
       <el-table-column prop="goodsName" label="商品名称"  align="center" header-align="center">
       </el-table-column>
       <el-table-column prop="goodsPrice" :formatter="formatterBalance"
@@ -45,6 +55,16 @@ export default {
         return 'font-weight: bolder;color: red;'
       }
     },
+    formatterType:function (row, column, cellValue, index){
+      debugger
+      let k=[{value:'1',text:'商品'},
+        {value:2,text:'剧本'}]
+      for (let i=0;i<k.length;i++){
+        if (k[i].value==cellValue){
+          return k[i].text;
+        }
+      }
+    },
     handleCurrentChange(val) {
       this.currentRow = val;
     },
@@ -63,7 +83,10 @@ export default {
     },
     doRefresh:async function () {
       let _this=this;
-      let data = await _this.$axios.get(_this.$baseUrl + '/thefog/goods/findAllGoods')
+      let data = await _this.$axios.get(_this.$baseUrl + '/thefog/goods/findAllGoods',{
+        params: {
+          goodsType: _this.goodsCheck,
+        }})
       this.goodsData = data;
     },
   },
@@ -72,6 +95,7 @@ export default {
   },
   data() {
     return {
+      goodsCheck:-1,
       goodsData:[],
       search:'',
       addVisible:false,//新增界面
@@ -84,6 +108,11 @@ export default {
       nowWeek: '',
       nowDate: '',
       nowTime: '',
+      TypeList: [
+        {value: -1, text: '全部'},
+        {value: 1, text: '商品'},
+        {value: 2, text: '剧本'},
+      ],
     };
   },
 }

@@ -15,7 +15,7 @@
 
     <el-table  ref="memberTable"
                highlight-current-row :data="memberData.filter(data => !search || new String(data.id).includes(search) || data.name.toLowerCase().includes(search.toLowerCase()))"
-              :border=true style="margin-top: 5px;" :height="dealType!==1?'800px':'500px'"
+              :border=true style="margin-top: 5px;" :height="dealType!==1?'780px':'500px'"
                @current-change="handleCurrentChange">
 <!--      <el-table-column-->
 <!--          type="index"-->
