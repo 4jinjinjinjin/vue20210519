@@ -87,7 +87,11 @@
     <transition name="el-zoom-in-center">
       <el-dialog  :modal="false" v-if="topUpVisible" title="充值记录" :visible.sync="topUpVisible" >
 <!--        :before-close="chargeClose"  >-->
-        <el-table  ref="topUpTable"
+
+        <div class="export">
+          <el-button @click="exportExcel(1)" style="margin-top: 2px;" size="medium" type="success">导出</el-button>
+        </div>
+        <el-table  ref="topUpTable" id="topUpTable"
                    highlight-current-row :data="topUpData"
                    :border=true style="margin-top: 5px;" :height="'500px'"
                    @current-change="handleCurrentChange"
@@ -114,7 +118,10 @@
     <transition name="el-zoom-in-center">
       <el-dialog  :modal="false" v-if="payDeatilVisible" title="消费记录" :visible.sync="payDeatilVisible" >
         <!--        :before-close="chargeClose"  >-->
-        <el-table  ref="payDetailTable"
+        <div class="export">
+          <el-button @click="exportExcel(2)" style="margin-top: 2px;" size="medium" type="success">导出</el-button>
+        </div>
+        <el-table  ref="payDetailTable" id="payDetailTable"
                    highlight-current-row :data="payDetailData"
                    :border=true style="margin-top: 5px;" :height="'500px'"
                    @current-change="handleCurrentChange"
@@ -146,6 +153,8 @@
 import moment from 'moment';
 import Add from "@/views/theFog/member/Add";
 import Charge from "@/views/theFog/member/Charge";
+import FileSaver from 'file-saver'
+import XLSX from 'xlsx'
 export default {
   components: {
     Add,
@@ -160,6 +169,28 @@ export default {
     handleCurrentChange(val) {
       this.currentRow = val;
     },
+    exportExcel (type) {
+      let wb;
+      let fileName;
+      if (type==1){
+        wb = XLSX.utils.table_to_book(document.querySelector('#topUpTable'));
+        fileName=this.memberName+'（充值记录）.xlsx';
+      }else if (type==2){
+        wb = XLSX.utils.table_to_book(document.querySelector('#payDetailTable'));
+        fileName=this.memberName+'（消费记录）.xlsx';
+      }
+      /* get binary string as output */
+      let wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'array' });
+      try {
+        FileSaver.saveAs(new Blob([wbout], { type: 'application/octet-stream' }),fileName);
+      } catch (e)
+      {
+        if (typeof console !== 'undefined')
+          console.log(e, wbout)
+      }
+      return wbout
+    },
+
     chooseMember:function (){
       debugger;
       const _selectData = this.currentRow;
@@ -221,6 +252,7 @@ export default {
             memberId:rowData.id
           }
         })
+        this.memberName=rowData.name;
         this.topUpVisible=true;
         this.utils.showSuccessTip(this, '查询成功！');
       }catch (e) {
@@ -237,6 +269,7 @@ export default {
             memberId:rowData.id
           }
         })
+        this.memberName=rowData.name;
         this.payDeatilVisible=true;
         this.utils.showSuccessTip(this, '查询成功！');
       }catch (e) {
@@ -264,6 +297,7 @@ export default {
   },
   data() {
     return {
+      memberName:'',
       search:'',
       addVisible:false,//新增界面
       editVisible:false,//编辑界面
